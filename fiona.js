@@ -346,7 +346,6 @@
   let erkennung = null;
   let zielFeld = null;
   let zielAnzeige = null;
-  let festerText = "";
 
   function spracheMoeglich() {
     // Absichtlich NICHT auf "isSecureContext" prüfen: Chrome lässt das
@@ -373,23 +372,46 @@
 
     erkennung.onstart = () => anzeigeSetzen("Ich höre zu …", true);
 
+    /*
+       Erkanntes wird ANGEHAENGT, nie ueberschrieben.
+
+       Hier steckte ein Fehler: Vorher wurde das ganze Feld neu geschrieben
+       (fester Text plus vorlaeufiger). Startete die Erkennung neu — was sie
+       nach jeder Sprechpause tut — war der bisherige Inhalt weg. Wer auf
+       "Nochmal sprechen" drueckte, verlor seine Antwort.
+
+       Jetzt gehoert das Feld dem Nutzer. Fertig erkannte Saetze werden ans
+       Ende gehaengt; was noch nicht fertig erkannt ist, steht in der Anzeige
+       darunter und nicht im Feld.
+    */
     erkennung.onresult = (e) => {
-      // Während Fiona redet, hört das Mikrofon zwar mit, aber nichts davon
-      // wird übernommen.
+      // Waehrend Fiona redet, hoert das Mikrofon zwar mit, aber nichts davon
+      // wird uebernommen.
       if (zustand.fionaRedet || !zielFeld) return;
 
       let vorlaeufig = "";
+      let neu = "";
+
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const stueck = e.results[i][0].transcript;
         if (e.results[i].isFinal) {
           const sauber = alsSatz(stueck);
-          if (sauber) festerText += (festerText ? " " : "") + sauber;
+          if (sauber) neu += (neu ? " " : "") + sauber;
         } else {
           vorlaeufig += stueck;
         }
       }
-      zielFeld.value = (festerText + " " + vorlaeufig).trim();
-      zielFeld.dispatchEvent(new Event("input"));
+
+      if (neu) {
+        const bisher = zielFeld.value.trimEnd();
+        zielFeld.value = bisher ? bisher + " " + neu : neu;
+        zielFeld.dispatchEvent(new Event("input"));
+        zielFeld.scrollTop = zielFeld.scrollHeight;
+      }
+
+      if (zielAnzeige) {
+        anzeigeSetzen(vorlaeufig ? "… " + vorlaeufig : "Ich höre zu …", true);
+      }
     };
 
     erkennung.onerror = (e) => {
@@ -457,7 +479,7 @@
 
     zielFeld = feld;
     zielAnzeige = anzeige;
-    festerText = feld.value.trim();
+
 
     // Läuft schon: nur das Ziel tauschen, nichts neu starten.
     if (zustand.hoertZu) { anzeigeSetzen("Ich höre zu …", true); return; }
@@ -740,13 +762,35 @@
     zeile.appendChild(weiterK);
     zeile.appendChild(ueberK);
 
-    // Im Sprachmodus ein Knopf, um das Mikrofon von Hand wieder anzuwerfen.
+    /*
+       Mikrofon-Umschalter. Vorher hiess der Knopf "Nochmal sprechen" und tat
+       nichts, wenn die Erkennung ohnehin lief. Jetzt schaltet er sichtbar
+       zwischen an und aus — und was schon im Feld steht, bleibt stehen.
+    */
     if (zustand.modus === "sprechen" && spracheMoeglich()) {
       const mikroK = document.createElement("button");
       mikroK.type = "button";
       mikroK.className = "knopf knopf-still";
-      mikroK.innerHTML = '<span aria-hidden="true">🎙</span> Nochmal sprechen';
-      mikroK.addEventListener("click", () => zuhoerenStarten(feld, anzeige));
+
+      const mikroBeschriften = () => {
+        mikroK.innerHTML = zustand.hoertZu
+          ? '<span aria-hidden="true">⏸</span> Mikrofon aus'
+          : '<span aria-hidden="true">🎙</span> Mikrofon an';
+      };
+      mikroBeschriften();
+
+      mikroK.addEventListener("click", async () => {
+        if (zustand.hoertZu) {
+          zustand.hoertZu = false;
+          if (erkennung) { try { erkennung.stop(); } catch (e) {} }
+          anzeigeSetzen("Mikrofon aus. Du kannst tippen — oder es wieder anschalten.", false);
+        } else {
+          await zuhoerenStarten(feld, anzeige);
+        }
+        mikroBeschriften();
+        feld.focus();
+      });
+
       zeile.appendChild(mikroK);
     }
 
@@ -1040,16 +1084,32 @@
      sich später gut auswerten lassen. Die schöne Ansicht auf dem Bildschirm
      ist eine andere Sache, siehe abschluss().
   */
-  function textAusFeldern() {
+  /*
+     Der Text, der weitergegeben wird.
+
+     Zwei Fassungen, aus einem einfachen Grund: Der Download darf schmuck
+     sein, die Adresszeile nicht. Trennlinien aus sechzig Gleichheitszeichen
+     kosten in einer Adresse rund 1.200 Zeichen — und genau die fehlen dann,
+     damit die Zusammenfassung noch ins Formular passt.
+
+       schmuck = true   Download und Zwischenablage: mit Trennlinien
+       schmuck = false  fuer die Adresszeile: knapp, aber vollstaendig
+  */
+  function textAusFeldern(schmuck) {
     const heute = new Date().toLocaleDateString("de-DE");
     const zeilen = [];
 
-    zeilen.push("ZUSAMMENFASSUNG — ERWARTUNGEN AN DEN KREISBRANDMEISTER");
-    zeilen.push("Landkreis Vechta · anonym · " + heute);
-    zeilen.push("");
-    zeilen.push("Erhoben im Gespräch mit Fiona.");
-    zeilen.push("Vom Teilnehmer vor dem Absenden geprüft und freigegeben.");
-    zeilen.push("");
+    if (schmuck) {
+      zeilen.push("ZUSAMMENFASSUNG — ERWARTUNGEN AN DEN KREISBRANDMEISTER");
+      zeilen.push("Landkreis Vechta · anonym · " + heute);
+      zeilen.push("");
+      zeilen.push("Erhoben im Gespräch mit Fiona.");
+      zeilen.push("Vom Teilnehmer vor dem Absenden geprüft und freigegeben.");
+      zeilen.push("");
+    } else {
+      zeilen.push("Zusammenfassung (anonym), " + heute);
+      zeilen.push("");
+    }
 
     let letzterBlock = null;
     abschlussFelder.forEach((eintrag) => {
@@ -1058,18 +1118,24 @@
 
       if (eintrag.block !== letzterBlock) {
         letzterBlock = eintrag.block;
-        zeilen.push("=".repeat(60));
-        zeilen.push(eintrag.block);
-        zeilen.push("=".repeat(60));
-        zeilen.push("");
+        if (schmuck) {
+          zeilen.push("=".repeat(60));
+          zeilen.push(eintrag.block);
+          zeilen.push("=".repeat(60));
+          zeilen.push("");
+        } else {
+          zeilen.push("[" + eintrag.block + "]");
+        }
       }
       zeilen.push(eintrag.label + ":");
       zeilen.push(wert);
       zeilen.push("");
     });
 
-    zeilen.push("=".repeat(60));
-    zeilen.push("Ende der Zusammenfassung.");
+    if (schmuck) {
+      zeilen.push("=".repeat(60));
+      zeilen.push("Ende der Zusammenfassung.");
+    }
 
     return zeilen.join("\n");
   }
@@ -1085,8 +1151,13 @@
   function abschluss() {
     fortschritt(BLOCK_GESAMT);
     zuhoerenBeenden();
-    beitragFiona(ABSCHLUSS.einleitung);
+    tonAus();
+    // Die Zusammenfassung bekommt eine eigene Seite — der Gespraechsverlauf
+    // waere hier nur noch Ballast und muesste weggescrollt werden.
+    verlauf.innerHTML = "";
     eingabeLeeren();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    beitragFiona(ABSCHLUSS.einleitung);
     abschlussFelder = [];
 
     const mappe = document.createElement("div");
@@ -1151,7 +1222,7 @@
     speichernK.type = "button";
     speichernK.className = "knopf";
     speichernK.textContent = "Speichern";
-    speichernK.addEventListener("click", () => speichern(textAusFeldern()));
+    speichernK.addEventListener("click", () => speichern());
 
     const verwerfenK = document.createElement("button");
     verwerfenK.type = "button";
@@ -1194,14 +1265,53 @@
     }
   }
 
-  async function speichern(text) {
+  /*
+     Die Zusammenfassung ins Formular bringen.
+
+     Erster Weg — der bequeme: Microsoft Forms kann Antworten über die Adresse
+     vorausfüllen. Dann öffnet sich das Formular mit dem fertigen Text, und der
+     Teilnehmer muss nur noch auf Absenden klicken. Kein Kopieren, kein
+     Einfügen, nichts, was man falsch machen kann.
+
+     Zweiter Weg — die Rückfallebene: Ist der Text zu lang für eine Adresse,
+     wandert er in die Zwischenablage und muss von Hand eingefügt werden.
+
+     Zum Mitdenken: Beim ersten Weg steht der Text in der Adresszeile und
+     landet damit im Browserverlauf — auf dem Rechner des Teilnehmers, mit
+     seinen eigenen, anonymen Antworten. Zu Microsoft gehen sie ohnehin, sobald
+     abgesendet wird.
+  */
+
+  function formularAdresse(text) {
+    if (!KONFIG.formularUrl) return null;
+    if (!KONFIG.formularFeld) return null;
+
+    const adresse = KONFIG.formularUrl + "&" + KONFIG.formularFeld + "=" + encodeURIComponent(text);
+    return adresse.length <= (KONFIG.urlGrenze || 3800) ? adresse : null;
+  }
+
+  async function speichern() {
     tonAus();
     zustand.fertig = true;
+
+    // Schmuckfassung fuer Download und Zwischenablage, knappe fuer die Adresse.
+    const text = textAusFeldern(true);
+    const knapp = textAusFeldern(false);
+
     eingabeLeeren();
 
     const testbetrieb = !KONFIG.formularUrl;
+    const vorausgefuellt = testbetrieb ? null : formularAdresse(knapp);
+
+    /*
+       Das Fenster MUSS hier aufgehen, direkt im Klick — vor jedem await.
+       Danach gilt der Klick als abgehandelt und der Browser blockiert das
+       Öffnen als ungebetenes Fenster.
+    */
+    if (vorausgefuellt) window.open(vorausgefuellt, "_blank", "noopener");
+
     let kopiert = false;
-    if (!testbetrieb) kopiert = await inZwischenablage(text);
+    if (!testbetrieb && !vorausgefuellt) kopiert = await inZwischenablage(text);
 
     beitragFiona(ABSCHLUSS.nachDemSpeichern);
 
@@ -1214,6 +1324,26 @@
       stark.textContent = ABSCHLUSS.testbetrieb;
       p.appendChild(stark);
       kasten.appendChild(p);
+
+    } else if (vorausgefuellt) {
+      const h = document.createElement("h2");
+      h.textContent = "Nur noch ein Klick";
+      kasten.appendChild(h);
+
+      const p = document.createElement("p");
+      p.className = "kasten-wichtig";
+      p.textContent = ABSCHLUSS.formularFertig;
+      kasten.appendChild(p);
+
+      const nochmalK = document.createElement("button");
+      nochmalK.type = "button";
+      nochmalK.className = "knopf";
+      nochmalK.textContent = ABSCHLUSS.formularNochmal;
+      nochmalK.addEventListener("click", () => {
+        window.open(vorausgefuellt, "_blank", "noopener");
+      });
+      kasten.appendChild(nochmalK);
+
     } else {
       const h = document.createElement("h2");
       h.textContent = "So kommt Dein Text ins Formular";
@@ -1237,7 +1367,7 @@
       const formularK = document.createElement("button");
       formularK.type = "button";
       formularK.className = "knopf";
-      formularK.textContent = "Formular öffnen und einfügen";
+      formularK.textContent = ABSCHLUSS.formularOeffnen;
       formularK.addEventListener("click", () => {
         window.open(KONFIG.formularUrl, "_blank", "noopener");
       });
@@ -1249,7 +1379,7 @@
 
     const ladenK = document.createElement("button");
     ladenK.type = "button";
-    ladenK.className = "knopf";
+    ladenK.className = "knopf knopf-still";
     ladenK.textContent = "Text herunterladen";
     ladenK.addEventListener("click", () => herunterladen(text));
     zeile.appendChild(ladenK);
@@ -1266,7 +1396,7 @@
 
     eingabe.appendChild(kasten);
     eingabe.appendChild(zeile);
-    ladenK.focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   /* ================================================================ */

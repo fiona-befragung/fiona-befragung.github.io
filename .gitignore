@@ -2,3 +2,6 @@
 desktop.ini
 Thumbs.db
 .DS_Store
+
+# Die Hintergrundbilder gehoeren nicht zur Webseite
+forms-hintergruende/

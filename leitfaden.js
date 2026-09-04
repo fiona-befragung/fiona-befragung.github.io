@@ -24,6 +24,32 @@ const KONFIG = {
   // abgeschickt, man kann den Text nur herunterladen.
   formularUrl: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=6yLIIlu8B0GU_-6Uiuq22jT3u6t9oVhGjCmRUzogJtVUOUpBRkszRVczUEc4S1VZN0gySFhWWDVORC4u",
 
+  /*
+     Feldname der Formularfrage. Damit kann die Zusammenfassung gleich in das
+     Formular geschrieben werden, statt sie von Hand einzufuegen.
+
+     Woher der Name kommt: In Forms unter „Weitere Formulareinstellungen" →
+     „Vorab ausgefuellte URL abrufen". Dort muss der Schalter „Vorab
+     ausgefuellte Antworten aktivieren" AN sein, sonst geht es nicht.
+     Wird die Frage geloescht und neu angelegt, aendert sich der Name.
+
+     Leer lassen, wenn der Text stattdessen von Hand eingefuegt werden soll.
+  */
+  formularFeld: "r0886e26f09a845acbb4e477665e6df9d",
+
+  /*
+     Hoechstlaenge der Adresse. Laengere Zusammenfassungen passen nicht in
+     eine Adresszeile — dann faellt die Seite auf den Weg ueber die
+     Zwischenablage zurueck.
+
+     Gemessen am 2026-08-29: Microsoft Forms nimmt Adressen bis rund 8.000
+     Zeichen an, ab etwa 10.000 antwortet es mit „nicht gefunden". 7.000 laesst
+     genug Luft. Das reicht fuer eine Zusammenfassung mit rund 60 Zeichen je
+     Antwort; wer laenger erzaehlt, bekommt automatisch den Weg ueber die
+     Zwischenablage.
+  */
+  urlGrenze: 7000,
+
   // Dateiname für den Download der eigenen Antworten.
   dateiname: "Meine-Antworten-Kreisbrandmeister.txt",
 
@@ -495,5 +521,9 @@ const ABSCHLUSS = {
   ],
   // Anleitung für das Einfügen ins Formular.
   formularAnleitung: "Der Text liegt jetzt in der Zwischenablage. Im Formular, das sich gleich öffnet, klickst Du in das große Feld und drückst Strg und V. Dann auf Absenden.",
+  // Wenn die Zusammenfassung direkt ins Formular geschrieben werden konnte:
+  formularFertig: "Das Formular ist offen, und Deine Zusammenfassung steht schon drin. Bitte dort nur noch nach unten scrollen und auf ABSENDEN klicken — erst dann ist Deine Antwort gespeichert.",
+  formularOeffnen: "Formular öffnen",
+  formularNochmal: "Formular noch einmal öffnen",
   testbetrieb: "TESTBETRIEB: Es ist noch kein Formular hinterlegt, es wird nichts abgeschickt. Du kannst den Text herunterladen.",
 };

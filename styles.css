@@ -667,3 +667,40 @@ h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
 .pruefliste { padding-left: 1.3rem; margin: .8rem 0 1rem; }
 .pruefliste li { margin-bottom: .55rem; }
 .fenster-fuss { margin: 1rem 0 0; text-align: center; }
+
+/* ================= Wo bin ich gerade? ================= */
+/*
+   Beim Tippen blendet Windows den Mauszeiger aus — das ist eine Einstellung
+   des Betriebssystems und laesst sich von einer Webseite nicht abschalten.
+   Was hilft: Das Feld, in dem man schreibt, muss auch ohne Mauszeiger
+   eindeutig zu erkennen sein. Deshalb hier ein kraeftiger Rahmen, ein
+   heller Schein und eine gut sichtbare Schreibmarke.
+*/
+
+.eingabe-feld, .zusammenfassung, .zf-eingabe {
+  caret-color: var(--akzent);
+  cursor: text;
+}
+
+.eingabe-feld:focus,
+.zusammenfassung:focus,
+.zf-eingabe:focus {
+  outline: none;
+  border-color: var(--akzent);
+  box-shadow: 0 0 0 4px var(--akzent-zart);
+  background: var(--flaeche);
+}
+
+/* Das gerade bearbeitete Feld in der Zusammenfassung heraushaben */
+.zf-feld:focus-within label { color: var(--akzent); }
+.zf-feld:focus-within {
+  background: var(--akzent-zart);
+  border-radius: var(--radius-klein);
+  padding: .5rem .6rem;
+  margin-left: -.6rem; margin-right: -.6rem;
+}
+
+.kasten-wichtig {
+  font-size: 1.05rem; font-weight: 600;
+  color: var(--schrift) !important;
+}
