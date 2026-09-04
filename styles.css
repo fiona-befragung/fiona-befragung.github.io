@@ -704,3 +704,10 @@ h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
   font-size: 1.05rem; font-weight: 600;
   color: var(--schrift) !important;
 }
+
+/* Knopf, der einen eingeschalteten Zustand anzeigt */
+.knopf-aktiv {
+  background: var(--akzent-zart);
+  border-color: var(--akzent);
+  color: var(--akzent);
+}

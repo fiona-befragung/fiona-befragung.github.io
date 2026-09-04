@@ -341,17 +341,72 @@
      sie sich selbst mit.
   */
 
+  /*
+     DER MIKROFON-STROM — das Mittel gegen die staendigen Nachfragen.
+
+     Chrome fragt bei jedem Start einer Spracherkennung neu nach der Erlaubnis,
+     solange die Seite lokal geoeffnet ist. Und die Erkennung startet sich nach
+     jeder Sprechpause selbst neu. Ergebnis waere: bei jeder Frage ein neues
+     Fenster.
+
+     Gegenmittel: Wir holen uns EINMAL ueber getUserMedia einen echten
+     Mikrofon-Strom und lassen ihn waehrend des ganzen Gespraechs offen.
+     Solange ein aktiver Strom laeuft, gilt der Zugriff als gewaehrt.
+
+     Der Strom wird erst am Ende des Gespraechs freigegeben — sonst leuchtet
+     das Aufnahmesymbol im Browser weiter.
+  */
+
+  let mikroStrom = null;
+
+  async function mikroStromHolen() {
+    if (mikroStrom && mikroStrom.active) return true;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
+    try {
+      mikroStrom = await navigator.mediaDevices.getUserMedia({ audio: true });
+      return true;
+    } catch (e) {
+      mikroStrom = null;
+      return false;
+    }
+  }
+
+  function mikroStromFreigeben() {
+    if (!mikroStrom) return;
+    mikroStrom.getTracks().forEach((spur) => spur.stop());
+    mikroStrom = null;
+  }
+
   const ErkennungsKlasse = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   let erkennung = null;
   let zielFeld = null;
   let zielAnzeige = null;
 
+  /*
+     ZWEI ZUSTAENDE, die man auseinanderhalten muss — hier steckte der Fehler,
+     durch den das Mikrofon ab dem dritten Thema tot war:
+
+       zustand.hoertZu   die ABSICHT: es soll zugehoert werden
+       erkennungLaeuft   die TATSACHE: die Erkennung laeuft wirklich
+
+     Vorher gab es nur die Absicht. Schlug ein Neustart fehl — was Chrome nach
+     Sprechpausen und Feldwechseln gern tut —, blieb die Absicht auf "laeuft",
+     und beim naechsten Feld hiess es: "laeuft ja schon, nichts zu tun". Ab da
+     kam nie wieder ein Wort an.
+
+     Jetzt wird verglichen. Weichen beide voneinander ab, startet der Waechter
+     die Erkennung neu.
+  */
+  let erkennungLaeuft = false;
+  let waechter = null;
+  let mikroVerweigert = false;
+
   function spracheMoeglich() {
-    // Absichtlich NICHT auf "isSecureContext" prüfen: Chrome lässt das
-    // Mikrofon auch bei lokal geöffneten Dateien zu (fragt dann nur jedes Mal
-    // nach). Ob es wirklich geht, zeigt sich beim Versuch — schlägt er fehl,
-    // schaltet onerror die Spracheingabe ab.
+    // Absichtlich NICHT auf "isSecureContext" pruefen: Chrome laesst das
+    // Mikrofon auch bei lokal geoeffneten Dateien zu (fragt dann nur jedes Mal
+    // nach). Und ein einzelner Fehlversuch schaltet die Spracheingabe NICHT
+    // mehr dauerhaft ab — der Umschalter bleibt, man kann es erneut versuchen.
     return !!ErkennungsKlasse && KONFIG.spracheingabeAnbieten;
   }
 
@@ -362,6 +417,24 @@
     zielAnzeige.classList.toggle("hoert", !!hoert);
   }
 
+  function erkennungAnwerfen() {
+    if (!erkennung || erkennungLaeuft) return;
+    try { erkennung.start(); } catch (e) { /* haengt noch am Beenden */ }
+  }
+
+  /* Prueft regelmaessig, ob Absicht und Tatsache noch zusammenpassen. */
+  function waechterAn() {
+    if (waechter) return;
+    waechter = setInterval(() => {
+      if (!zustand.hoertZu) { waechterAus(); return; }
+      if (!erkennungLaeuft) erkennungAnwerfen();
+    }, 1500);
+  }
+
+  function waechterAus() {
+    if (waechter) { clearInterval(waechter); waechter = null; }
+  }
+
   function erkennungAufbauen() {
     if (erkennung || !ErkennungsKlasse) return;
 
@@ -370,23 +443,17 @@
     erkennung.continuous = true;
     erkennung.interimResults = true;
 
-    erkennung.onstart = () => anzeigeSetzen("Ich höre zu …", true);
+    erkennung.onstart = () => {
+      erkennungLaeuft = true;
+      mikroVerweigert = false;
+      if (zielFeld) anzeigeSetzen("Ich höre zu …", true);
+    };
 
     /*
-       Erkanntes wird ANGEHAENGT, nie ueberschrieben.
-
-       Hier steckte ein Fehler: Vorher wurde das ganze Feld neu geschrieben
-       (fester Text plus vorlaeufiger). Startete die Erkennung neu — was sie
-       nach jeder Sprechpause tut — war der bisherige Inhalt weg. Wer auf
-       "Nochmal sprechen" drueckte, verlor seine Antwort.
-
-       Jetzt gehoert das Feld dem Nutzer. Fertig erkannte Saetze werden ans
-       Ende gehaengt; was noch nicht fertig erkannt ist, steht in der Anzeige
-       darunter und nicht im Feld.
+       Erkanntes wird ANGEHAENGT, nie ueberschrieben. Das Feld gehoert dem
+       Nutzer; was noch nicht fertig erkannt ist, steht in der Anzeige darunter.
     */
     erkennung.onresult = (e) => {
-      // Waehrend Fiona redet, hoert das Mikrofon zwar mit, aber nichts davon
-      // wird uebernommen.
       if (zustand.fionaRedet || !zielFeld) return;
 
       let vorlaeufig = "";
@@ -416,86 +483,49 @@
 
     erkennung.onerror = (e) => {
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        // NICHT dauerhaft abschalten: Der Umschalter bleibt, damit man es
+        // noch einmal versuchen kann. Vorher war die Spracheingabe nach einem
+        // einzigen solchen Fehler fuer den Rest des Gespraechs tot.
+        mikroVerweigert = true;
         zustand.hoertZu = false;
-        KONFIG.spracheingabeAnbieten = false;
-        anzeigeSetzen("Das Mikrofon ist nicht freigegeben. Tipp Deine Antwort bitte ein.", false);
-      } else if (e.error === "no-speech" || e.error === "aborted") {
-        // Kommt bei Sprechpausen ständig vor — kein Grund für einen Hinweis.
+        waechterAus();
+        anzeigeSetzen("Das Mikrofon ist nicht freigegeben. Tipp bitte — oder versuch es über den Knopf noch einmal.", false);
       }
+      // "no-speech" und "aborted" kommen bei Sprechpausen staendig vor und
+      // sind kein Grund fuer einen Hinweis.
     };
 
     erkennung.onend = () => {
-      // Chrome beendet nach Sprechpausen von selbst. Solange zugehört werden
-      // soll, geht es weiter — OHNE neue Nachfrage, weil es dieselbe
-      // Erkennung ist.
+      erkennungLaeuft = false;
       if (!zustand.hoertZu) return;
-      // Kurz durchatmen, sonst beschwert sich Chrome ueber zu schnelle Neustarts.
-      setTimeout(() => {
-        if (!zustand.hoertZu) return;
-        try { erkennung.start(); } catch (e) { /* laeuft schon */ }
-      }, 250);
+      // Kurz durchatmen, sonst beschwert sich Chrome ueber zu schnelle
+      // Neustarts. Klappt es trotzdem nicht, greift der Waechter.
+      setTimeout(erkennungAnwerfen, 250);
     };
   }
 
-  /*
-     DER MIKROFON-STROM — der Trick gegen die ewigen Nachfragen.
-
-     Chrome fragt bei JEDEM Start einer Spracherkennung neu nach der Erlaubnis,
-     solange die Seite lokal geöffnet ist. Und die Erkennung startet sich nach
-     jeder Sprechpause selbst neu. Ergebnis: bei jeder Frage ein neues Fenster.
-
-     Gegenmittel: Wir holen uns EINMAL über getUserMedia einen echten
-     Mikrofon-Strom und lassen ihn während des ganzen Gesprächs offen. Solange
-     ein aktiver Strom läuft, gilt der Zugriff als gewährt und die Erkennung
-     darf ohne neue Nachfrage starten.
-
-     Der Strom wird erst am Ende des Gesprächs freigegeben — sonst leuchtet
-     das Aufnahmesymbol im Browser weiter.
-  */
-
-  let mikroStrom = null;
-
-  async function mikroStromHolen() {
-    if (mikroStrom && mikroStrom.active) return true;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
-    try {
-      mikroStrom = await navigator.mediaDevices.getUserMedia({ audio: true });
-      return true;
-    } catch (e) {
-      mikroStrom = null;
-      return false;
-    }
-  }
-
-  function mikroStromFreigeben() {
-    if (!mikroStrom) return;
-    mikroStrom.getTracks().forEach((spur) => spur.stop());
-    mikroStrom = null;
-  }
-
-  /* Ziel wechseln — und beim allerersten Mal die Erkennung starten. */
+  /* Ziel wechseln — und dafuer sorgen, dass wirklich zugehoert wird. */
   async function zuhoerenStarten(feld, anzeige) {
     if (!spracheMoeglich()) return;
 
     zielFeld = feld;
     zielAnzeige = anzeige;
+    zustand.hoertZu = true;
 
-
-    // Läuft schon: nur das Ziel tauschen, nichts neu starten.
-    if (zustand.hoertZu) { anzeigeSetzen("Ich höre zu …", true); return; }
-
-    anzeigeSetzen("Mikrofon wird geöffnet …", false);
-    await mikroStromHolen();
+    if (!mikroStrom || !mikroStrom.active) {
+      anzeigeSetzen("Mikrofon wird geöffnet …", false);
+      await mikroStromHolen();
+    }
 
     erkennungAufbauen();
     if (!erkennung) return;
 
-    zustand.hoertZu = true;
-    try { erkennung.start(); } catch (e) { /* läuft bereits */ }
-    anzeigeSetzen("Ich höre zu …", true);
+    erkennungAnwerfen();
+    waechterAn();
+    anzeigeSetzen(erkennungLaeuft ? "Ich höre zu …" : "Mikrofon wird geöffnet …", erkennungLaeuft);
   }
 
-  /* Nur das Ziel abhängen. Erkennung und Mikrofon-Strom laufen weiter, damit
+  /* Nur das Ziel abhaengen. Erkennung und Mikrofon-Strom laufen weiter, damit
      Chrome nicht erneut nach der Erlaubnis fragt. */
   function zuhoerenPausieren() {
     zielFeld = null;
@@ -503,9 +533,10 @@
     zielAnzeige = null;
   }
 
-  /* Ganz beenden — nur am Ende des Gesprächs oder beim Abbruch. */
+  /* Ganz beenden — nur am Ende des Gespraechs oder beim Abbruch. */
   function zuhoerenBeenden() {
     zustand.hoertZu = false;
+    waechterAus();
     zuhoerenPausieren();
     if (erkennung) { try { erkennung.stop(); } catch (e) {} }
     mikroStromFreigeben();
@@ -772,10 +803,13 @@
       mikroK.type = "button";
       mikroK.className = "knopf knopf-still";
 
+      // Zeigt den ZUSTAND, nicht die Aktion — genau wie der Ton-Knopf oben.
       const mikroBeschriften = () => {
+        mikroK.setAttribute("aria-pressed", String(zustand.hoertZu));
+        mikroK.classList.toggle("knopf-aktiv", zustand.hoertZu);
         mikroK.innerHTML = zustand.hoertZu
-          ? '<span aria-hidden="true">⏸</span> Mikrofon aus'
-          : '<span aria-hidden="true">🎙</span> Mikrofon an';
+          ? '<span aria-hidden="true">🎙</span> Mikrofon an'
+          : '<span aria-hidden="true">🔇</span> Mikrofon aus';
       };
       mikroBeschriften();
 
@@ -785,6 +819,9 @@
           if (erkennung) { try { erkennung.stop(); } catch (e) {} }
           anzeigeSetzen("Mikrofon aus. Du kannst tippen — oder es wieder anschalten.", false);
         } else {
+          if (mikroVerweigert) {
+            anzeigeSetzen("Ich versuche es noch einmal. Bitte auf „Zulassen“ klicken, wenn der Browser fragt.", false);
+          }
           await zuhoerenStarten(feld, anzeige);
         }
         mikroBeschriften();
