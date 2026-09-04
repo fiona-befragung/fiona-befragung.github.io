@@ -22,7 +22,7 @@ const KONFIG = {
   // Link zum Microsoft-Formular, in das die Zusammenfassung eingefügt wird.
   // Solange hier "" steht, läuft die Seite im TESTBETRIEB: Es wird nichts
   // abgeschickt, man kann den Text nur herunterladen.
-  formularUrl: "",
+  formularUrl: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=6yLIIlu8B0GU_-6Uiuq22jT3u6t9oVhGjCmRUzogJtVUOUpBRkszRVczUEc4S1VZN0gySFhWWDVORC4u",
 
   // Dateiname für den Download der eigenen Antworten.
   dateiname: "Meine-Antworten-Kreisbrandmeister.txt",
