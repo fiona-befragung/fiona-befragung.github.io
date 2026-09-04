@@ -48,7 +48,7 @@ const KONFIG = {
      Antwort; wer laenger erzaehlt, bekommt automatisch den Weg ueber die
      Zwischenablage.
   */
-  urlGrenze: 7000,
+  urlGrenze: 7800,
 
   // Dateiname für den Download der eigenen Antworten.
   dateiname: "Meine-Antworten-Kreisbrandmeister.txt",
@@ -282,6 +282,50 @@ const KEINE_NAMEN = [
   "mitglied", "aktiv", "dabei", "seit", "auch", "schon", "noch", "hier",
   "froh", "sicher", "der", "die", "das", "ein", "eine", "kein", "nicht",
   "mir", "mich", "sehr", "ganz", "eher", "immer", "oft", "meistens",
+];
+
+/*
+   FACHBEGRIFFE GERADEZIEHEN
+
+   Die Spracherkennung kennt kein Feuerwehrdeutsch. Aus „Kreisbrandmeister"
+   wird zuverlaessig „Kreisbraumeister", „Kreisbaumeister" oder gar
+   „Kreis Braumeister". Das ist kein Zufall, sondern immer derselbe Fehler —
+   und genau deshalb laesst er sich beheben.
+
+   Links steht, was ankommt (klein geschrieben, ohne Ruecksicht auf Gross-
+   und Kleinschreibung), rechts, was daraus wird. Wer beim Testen weitere
+   Verhoerer sieht: einfach eine Zeile ergaenzen.
+
+   Vorsicht bei kurzen Woertern — je kuerzer, desto eher trifft es auch
+   Stellen, die richtig waren.
+*/
+const FACHBEGRIFFE = [
+  // Kreisbrandmeister
+  ["kreis ?brau ?meister",        "Kreisbrandmeister"],
+  ["kreis ?bau ?meister",         "Kreisbrandmeister"],
+  ["kraus ?bau ?meister",         "Kreisbrandmeister"],
+  ["kreis ?brand ?meisterin",     "Kreisbrandmeisterin"],
+  ["preis ?brand ?meister",       "Kreisbrandmeister"],
+  ["kreis ?brau ?stellvertreter", "stellvertretenden Kreisbrandmeister"],
+  ["kreis ?bau ?stellvertreter",  "stellvertretenden Kreisbrandmeister"],
+
+  // Orts- und Gemeindeebene
+  ["orts ?brau ?meister",         "Ortsbrandmeister"],
+  ["orts ?bau ?meister",          "Ortsbrandmeister"],
+  ["gemeinde ?brau ?meister",     "Gemeindebrandmeister"],
+  ["gemeinde ?bau ?meister",      "Gemeindebrandmeister"],
+  ["stadt ?brau ?meister",        "Stadtbrandmeister"],
+
+  // Weitere Fachwoerter
+  ["leit ?stelle",                "Leitstelle"],
+  ["weit ?stelle",                "Leitstelle"],
+  ["atem ?schutz",                "Atemschutz"],
+  ["digital ?funk",               "Digitalfunk"],
+  ["jugend ?feuerwehr",           "Jugendfeuerwehr"],
+  ["feuer ?wehr",                 "Feuerwehr"],
+  ["ausrueck ?ordnung",           "Ausrückeordnung"],
+  ["abschnitts ?leiter",          "Abschnittsleiter"],
+  ["gefahren ?abwehr ?planung",   "Gefahrenabwehrplanung"],
 ];
 
 // Stichwörter zu besonders geschützten Daten (Artikel 9 DSGVO).
@@ -524,6 +568,12 @@ const ABSCHLUSS = {
   // Wenn die Zusammenfassung direkt ins Formular geschrieben werden konnte:
   formularFertig: "Das Formular ist offen, und Deine Zusammenfassung steht schon drin. Bitte dort nur noch nach unten scrollen und auf ABSENDEN klicken — erst dann ist Deine Antwort gespeichert.",
   formularOeffnen: "Formular öffnen",
+  // Wenn der Text zu lang fuer die Adresse war: die zwei Handgriffe.
+  formularSchritte: [
+    "Das Formular ist schon offen — wechsle in den anderen Tab.",
+    "Klick in das große Feld und drück Strg und V. Dein Text ist bereits kopiert.",
+    "Dann auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
+  ],
   formularNochmal: "Formular noch einmal öffnen",
   testbetrieb: "TESTBETRIEB: Es ist noch kein Formular hinterlegt, es wird nichts abgeschickt. Du kannst den Text herunterladen.",
 };

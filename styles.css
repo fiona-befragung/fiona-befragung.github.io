@@ -711,3 +711,6 @@ h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
   border-color: var(--akzent);
   color: var(--akzent);
 }
+
+.schrittliste { margin: .6rem 0 1rem; padding-left: 1.4rem; }
+.schrittliste li { margin-bottom: .5rem; font-weight: 500; }

@@ -556,10 +556,26 @@
      kaputtmachen als reparieren. Nur "neuer Absatz" ist eindeutig genug.
   */
 
+  /*
+     Fachbegriffe geradeziehen — die Liste steht in leitfaden.js unter
+     FACHBEGRIFFE. Wird auf jeden fertig erkannten Abschnitt angewandt, bevor
+     er im Feld landet. Damit steht dort gleich das richtige Wort und muss
+     nicht am Ende mühsam korrigiert werden.
+  */
+  function begriffeGeradeziehen(text) {
+    if (typeof FACHBEGRIFFE === "undefined") return text;
+    let t = text;
+    FACHBEGRIFFE.forEach((paar) => {
+      t = t.replace(new RegExp("\\b" + paar[0] + "\\b", "gi"), paar[1]);
+    });
+    return t;
+  }
+
   function alsSatz(roh) {
     let t = (roh || "").trim();
     if (!t) return "";
 
+    t = begriffeGeradeziehen(t);
     t = t.replace(/\b(neuer absatz|neue zeile)\b/gi, "\n");
     t = t.replace(/\s+([.,:;!?])/g, "$1");
 
@@ -807,9 +823,11 @@
       const mikroBeschriften = () => {
         mikroK.setAttribute("aria-pressed", String(zustand.hoertZu));
         mikroK.classList.toggle("knopf-aktiv", zustand.hoertZu);
+        // Ein Verb macht es eindeutig: "Mikrofon aus" kann man als Zustand
+        // ODER als Aufforderung lesen — "Mikrofon ausschalten" nicht.
         mikroK.innerHTML = zustand.hoertZu
-          ? '<span aria-hidden="true">🎙</span> Mikrofon an'
-          : '<span aria-hidden="true">🔇</span> Mikrofon aus';
+          ? '<span aria-hidden="true">🎙</span> Mikrofon ausschalten'
+          : '<span aria-hidden="true">🔇</span> Mikrofon einschalten';
       };
       mikroBeschriften();
 
@@ -1343,12 +1361,20 @@
     /*
        Das Fenster MUSS hier aufgehen, direkt im Klick — vor jedem await.
        Danach gilt der Klick als abgehandelt und der Browser blockiert das
-       Öffnen als ungebetenes Fenster.
-    */
-    if (vorausgefuellt) window.open(vorausgefuellt, "_blank", "noopener");
+       Oeffnen als ungebetenes Fenster.
 
+       Es geht in BEIDEN Faellen auf: mit vorausgefuelltem Text, wenn er in
+       die Adresse passt, sonst leer. So ist es immer nur ein Klick, und im
+       zweiten Fall bleibt genau ein Handgriff: einfuegen.
+    */
+    if (!testbetrieb) {
+      window.open(vorausgefuellt || KONFIG.formularUrl, "_blank", "noopener");
+    }
+
+    // Auch bei vorausgefuelltem Text in die Zwischenablage legen — falls das
+    // Formular den Text wider Erwarten nicht uebernimmt.
     let kopiert = false;
-    if (!testbetrieb && !vorausgefuellt) kopiert = await inZwischenablage(text);
+    if (!testbetrieb) kopiert = await inZwischenablage(text);
 
     beitragFiona(ABSCHLUSS.nachDemSpeichern);
 
@@ -1383,14 +1409,24 @@
 
     } else {
       const h = document.createElement("h2");
-      h.textContent = "So kommt Dein Text ins Formular";
+      h.textContent = "Noch zwei Handgriffe";
       kasten.appendChild(h);
 
-      const p = document.createElement("p");
-      p.textContent = kopiert
-        ? ABSCHLUSS.formularAnleitung
-        : "Markiere den Text unten, kopiere ihn mit Strg und C, und füge ihn im Formular mit Strg und V ein.";
-      kasten.appendChild(p);
+      if (kopiert) {
+        const schritte = document.createElement("ol");
+        schritte.className = "schrittliste";
+        ABSCHLUSS.formularSchritte.forEach((satz) => {
+          const li = document.createElement("li");
+          li.textContent = satz;
+          schritte.appendChild(li);
+        });
+        kasten.appendChild(schritte);
+      } else {
+        const p = document.createElement("p");
+        p.className = "kasten-wichtig";
+        p.textContent = "Markiere den Text unten, kopiere ihn mit Strg und C, und füge ihn im Formular mit Strg und V ein.";
+        kasten.appendChild(p);
+      }
 
       if (!kopiert) {
         const feld = document.createElement("textarea");
