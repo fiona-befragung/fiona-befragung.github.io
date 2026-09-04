@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kreisbrandmeister — Aufgaben und Erwartungen?</title>
+<meta name="description" content="Anonyme Befragung der Brandmeister im Landkreis Vechta zu den Aufgaben und Erwartungen an den Kreisbrandmeister.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="sprungmarke" href="#buehne">Zum Inhalt springen</a>
+
+<header class="kopf" id="kopf" hidden>
+  <div class="kopf-innen">
+    <p class="marke"><span class="marke-punkt" aria-hidden="true"></span> Kreisbrandmeister — Aufgaben und Erwartungen</p>
+    <div class="kopf-knoepfe" id="kopfKnoepfe">
+      <button type="button" id="tonKnopf" class="knopf-klein" aria-pressed="true">
+        <span aria-hidden="true">🔊</span> Ton an
+      </button>
+      <button type="button" id="abbruchKnopf" class="knopf-klein">Abbrechen</button>
+    </div>
+  </div>
+  <div class="fortschritt" id="fortschrittLeiste" hidden>
+    <p id="fortschrittText">Block 1 von 10</p>
+    <div class="balken" role="progressbar" aria-labelledby="fortschrittText" aria-valuemin="0" aria-valuemax="10" aria-valuenow="1">
+      <div class="balken-fuellung" id="balkenFuellung"></div>
+    </div>
+  </div>
+</header>
+
+<main id="buehne" class="buehne" tabindex="-1">
+
+  <!-- ============ Sperrhinweis für Browser ohne Spracheingabe ============ -->
+  <section id="browserHinweis" class="bild sperre" hidden>
+    <div class="sperre-symbol" id="sperreSymbol" aria-hidden="true"></div>
+    <h1 id="sperreTitel"></h1>
+    <p class="sperre-text" id="sperreText"></p>
+    <p class="sperre-anleitung" id="sperreAnleitung"></p>
+    <div class="eingabe-zeile">
+      <button type="button" class="knopf knopf-gross" id="linkKopieren"></button>
+    </div>
+    <p class="sperre-fuss">
+      <button type="button" class="sperre-weiter" id="trotzdemWeiter"></button>
+    </p>
+  </section>
+
+  <!-- ============ Bildschirm 1: Startseite ============ -->
+  <section id="startbildschirm" class="bild start">
+    <!-- Eigene Zeichnung: In der Mitte die Rolle — eine Figur mit Helm, ohne
+         Gesicht, denn es geht um ein Amt und nicht um eine bestimmte Person.
+         Ringsum die Fragen, die darauf zielen. Kein fremdes Bildmaterial. -->
+    <div class="bildflaeche">
+      <svg class="illu" viewBox="0 0 420 300" role="img"
+           aria-labelledby="illuTitel illuBeschreibung">
+        <title id="illuTitel">Alle Fragen zielen auf eine Rolle</title>
+        <desc id="illuBeschreibung">In der Mitte steht die Umrissfigur einer Person mit Feuerwehrhelm — sie steht für das Amt des Kreisbrandmeisters, nicht für einen bestimmten Menschen. Ringsum schweben sechs Sprechblasen mit Fragezeichen, deren Spitzen auf die Figur zeigen.</desc>
+
+        <defs>
+          <clipPath id="kreisSchnitt"><circle cx="210" cy="150" r="58"/></clipPath>
+        </defs>
+
+        <!-- Verbindungslinien nach innen -->
+        <g class="illu-linien" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="3 7">
+          <path d="M92 78 C 128 100, 145 110, 158 118"/>
+          <path d="M330 72 C 296 96, 278 106, 262 116"/>
+          <path d="M74 156 C 110 154, 128 152, 150 151"/>
+          <path d="M348 152 C 312 151, 294 150, 270 150"/>
+          <path d="M100 232 C 134 210, 148 200, 160 190"/>
+          <path d="M322 236 C 288 212, 274 202, 262 190"/>
+        </g>
+
+        <!-- Die Rolle in der Mitte -->
+        <g class="illu-figur">
+          <circle cx="210" cy="150" r="58" class="illu-kreis"/>
+          <g clip-path="url(#kreisSchnitt)">
+            <!-- Schultern -->
+            <path class="illu-koerper" d="M168 216 c0-25 19-40 42-40 s42 15 42 40 v26 h-84 z"/>
+            <!-- Kopf -->
+            <circle class="illu-koerper" cx="210" cy="153" r="19"/>
+            <!-- Feuerwehrhelm: Kuppel mit Krempe -->
+            <path class="illu-helm" d="M189 143 a21 21 0 0 1 42 0 z"/>
+            <path class="illu-helm" d="M182 143 h56 a5 5 0 0 1 -5 7 h-46 a5 5 0 0 1 -5 -7 z"/>
+            <path class="illu-helmkamm" d="M210 122 v-6"/>
+          </g>
+          <circle cx="210" cy="150" r="58" class="illu-kreisrand"/>
+        </g>
+
+        <!-- Die Fragen ringsum -->
+        <g class="illu-blasen">
+          <g class="blase" style="--verzug:0ms">
+            <rect x="46" y="42" width="52" height="44" rx="14"/>
+            <path d="M88 86 l0 13 l-14 -13 z"/>
+            <text x="72" y="72">?</text>
+          </g>
+          <g class="blase" style="--verzug:110ms">
+            <rect x="324" y="36" width="52" height="44" rx="14"/>
+            <path d="M334 80 l0 13 l14 -13 z"/>
+            <text x="350" y="66">?</text>
+          </g>
+          <g class="blase" style="--verzug:220ms">
+            <rect x="22" y="132" width="52" height="44" rx="14"/>
+            <path d="M74 148 l13 6 l-13 6 z"/>
+            <text x="48" y="162">?</text>
+          </g>
+          <g class="blase" style="--verzug:330ms">
+            <rect x="348" y="128" width="52" height="44" rx="14"/>
+            <path d="M348 144 l-13 6 l13 6 z"/>
+            <text x="374" y="158">?</text>
+          </g>
+          <g class="blase" style="--verzug:440ms">
+            <rect x="56" y="212" width="52" height="44" rx="14"/>
+            <path d="M96 212 l0 -13 l-14 13 z"/>
+            <text x="82" y="242">?</text>
+          </g>
+          <g class="blase" style="--verzug:550ms">
+            <rect x="316" y="216" width="52" height="44" rx="14"/>
+            <path d="M328 216 l0 -13 l14 13 z"/>
+            <text x="342" y="246">?</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <p class="bild-unterschrift" id="bildUnterschrift"></p>
+
+    <h1 id="startTitel"></h1>
+    <p class="start-unter" id="startUnter"></p>
+    <div class="start-text" id="startText"></div>
+    <ul class="marken" id="startPunkte"></ul>
+
+    <button type="button" class="knopf knopf-gross" id="startKnopf"></button>
+  </section>
+
+  <!-- ============ Bildschirm 2: Vorbereitung ============ -->
+  <section id="vorbereitung" class="bild" hidden>
+    <h1 id="vorTitel"></h1>
+    <p class="start-unter" id="vorUnter"></p>
+
+    <div class="karten" id="vorHinweise"></div>
+
+    <div class="feld-block">
+      <h2 id="mikroTitel"></h2>
+      <p id="mikroText"></p>
+      <p class="hinweiszeile" id="sicherheitshinweis" hidden></p>
+      <div class="eingabe-zeile" id="mikroZeile">
+        <button type="button" class="knopf knopf-still" id="mikroKnopf"></button>
+      </div>
+      <div id="mikroErgebnis" hidden>
+        <p class="teststatus" id="testStatus" aria-live="polite"></p>
+        <div class="pegel" id="pegel" hidden>
+          <div class="pegel-fuellung" id="pegelFuellung"></div>
+        </div>
+        <p class="hoeranzeige" id="hoerAnzeigeVor" hidden></p>
+        <textarea class="eingabe-feld" id="mikroFeld" rows="2" aria-label="Was Du sagst, erscheint hier"></textarea>
+        <div class="befund" id="mikroBefund" hidden aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="eingabe-zeile">
+      <button type="button" class="knopf" id="weiterSprechen"></button>
+      <button type="button" class="knopf knopf-still" id="weiterTippen"></button>
+    </div>
+  </section>
+
+  <!-- ============ Bildschirm 3: Das Gespräch ============ -->
+  <div id="gespraech" class="gespraech" hidden>
+    <div id="verlauf" class="verlauf" aria-live="polite" aria-atomic="false"></div>
+    <div id="eingabe" class="eingabe"></div>
+  </div>
+
+</main>
+
+<!-- Zeigt an, dass Fiona gerade spricht. -->
+<div id="sprechanzeige" class="sprechanzeige" hidden>
+  <div class="sprech-balken" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div class="sprech-text">
+    <p><strong>Fiona spricht</strong></p>
+    <button type="button" class="sprech-knopf" id="keinTonKnopf">Ich höre nichts</button>
+  </div>
+</div>
+
+<footer class="fuss">
+  <p>
+    Hier fragt ein Computerprogramm, keine Person.
+    Es wird kein Ton aufgezeichnet und kein Name erhoben.
+    <a href="#" id="datenschutzLink">Was passiert mit meinen Antworten?</a>
+  </p>
+</footer>
+
+<dialog id="datenschutzFenster" class="fenster" aria-labelledby="dsTitel">
+  <h2 id="dsTitel">Was passiert mit Deinen Antworten?</h2>
+  <ul>
+    <li><strong>Es wird kein Ton aufgezeichnet.</strong> Weder Deine Stimme noch ein Video.</li>
+    <li><strong>Es wird nicht nach Deinem Namen gefragt.</strong> Auch nicht nach Deiner Gemeinde.</li>
+    <li><strong>Während des Gesprächs verlässt nichts Deinen Rechner.</strong> Die Fragen laufen in Deinem Browser.</li>
+    <li><strong>Am Ende siehst Du eine Zusammenfassung.</strong> Du kannst sie ändern oder streichen. Erst wenn Du auf Speichern klickst, wird sie weitergegeben.</li>
+    <li><strong>Wenn Du die Seite vorher schließt, ist alles gelöscht.</strong></li>
+    <li>Die Teilnahme ist freiwillig. Wer nicht mitmacht, hat keinen Nachteil.</li>
+    <li>Im Gespräch läuft <strong>keine künstliche Intelligenz</strong> — Fiona arbeitet einen festen Fragebogen ab. Die spätere Auswertung aller Antworten wird mit Hilfe von KI erstellt und von Menschen geprüft.</li>
+  </ul>
+  <form method="dialog">
+    <button class="knopf">Verstanden</button>
+  </form>
+</dialog>
+
+<!-- Wenn jemand nichts hört: erst gemeinsam nachsehen, dann erst umschalten. -->
+<dialog id="tonFenster" class="fenster" aria-labelledby="tonTitel">
+  <h2 id="tonTitel">Du hörst nichts?</h2>
+  <p>Lass uns kurz nachsehen. Bitte der Reihe nach:</p>
+  <ol class="pruefliste">
+    <li>Sind die <strong>Lautsprecher an</strong> — oder der Kopfhörer richtig eingesteckt?</li>
+    <li>Ist die <strong>Lautstärke</strong> weit genug aufgedreht?</li>
+    <li>Ist der Rechner vielleicht <strong>stummgeschaltet</strong>? (Lautsprechersymbol unten rechts)</li>
+  </ol>
+  <p>Wenn das alles stimmt, probier es hier noch einmal:</p>
+  <div class="fenster-knoepfe">
+    <button type="button" class="knopf" id="tonProbe">Probe abspielen</button>
+    <button type="button" class="knopf knopf-still" id="tonGehtDoch">Jetzt höre ich sie</button>
+  </div>
+  <p class="fenster-fuss">
+    <button type="button" class="sperre-weiter" id="tonGehtNicht">Ich höre wirklich nichts — bitte schriftlich weitermachen</button>
+  </p>
+</dialog>
+
+<dialog id="abbruchFenster" class="fenster" aria-labelledby="abTitel">
+  <h2 id="abTitel">Gespräch abbrechen?</h2>
+  <p>Alles, was Du bisher gesagt hast, wird verworfen. Es wird nichts gespeichert und nichts weitergegeben.</p>
+  <div class="fenster-knoepfe">
+    <button type="button" class="knopf knopf-warnung" id="abbruchJa">Ja, abbrechen</button>
+    <button type="button" class="knopf knopf-still" id="abbruchNein">Weitermachen</button>
+  </div>
+</dialog>
+
+<script src="leitfaden.js"></script>
+<script src="fiona.js"></script>
+</body>
+</html>

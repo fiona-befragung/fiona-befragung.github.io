@@ -1,0 +1,669 @@
+/*
+  Fiona — Aussehen
+  ================
+  Ruhig, großzügig, gut lesbar. Barrierefreiheit nach WCAG 2.2 AA:
+  Kontrast mindestens 4,5:1, alles mit Tastatur bedienbar, sichtbarer Fokus,
+  bei 200 % Zoom benutzbar, keine Aussage allein über Farbe, Rücksicht auf
+  `prefers-reduced-motion`.
+*/
+
+/*
+   Die Seite ist bewusst DURCHGEHEND HELL — keine Umschaltung auf dunkel.
+   Das ist eine Festlegung des Nutzers. Alle Farben sind so gewählt, dass der
+   Kontrast über 4,5:1 liegt.
+*/
+
+:root {
+  color-scheme: light;
+
+  --grund: #fbf7f2;          /* warmes Sandweiß */
+  --grund-2: #fffdfa;
+  --flaeche: #ffffff;
+  --linie: #e7ded1;
+  --linie-zart: #f1eae0;
+  --schrift: #1f1c18;
+  --schrift-leise: #5c554c;
+  --akzent: #a4262c;         /* Feuerwehrrot */
+  --akzent-dunkel: #7d1d21;
+  --akzent-zart: #fdeeec;
+  --warm: #c9743b;           /* Bernstein, für die Zeichnung */
+  --warm-zart: #fbeadc;
+  --fiona-flaeche: #ffffff;
+  --ich-flaeche: #f2ede4;
+  --warnung: #7a4b00;
+  --fokus: #0b5cab;
+  --radius: 14px;
+  --radius-klein: 9px;
+  --breite: 46rem;
+  --schatten: 0 1px 2px rgba(60,40,20,.05), 0 8px 22px rgba(60,40,20,.07);
+  --kopfhoehe: 4rem;
+}
+
+* { box-sizing: border-box; }
+
+/* Muss stehen, weil display:flex sonst das hidden-Attribut aushebelt. */
+[hidden] { display: none !important; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 460px at 12% -6%, var(--warm-zart) 0%, transparent 58%),
+    radial-gradient(1000px 520px at 88% 4%, var(--akzent-zart) 0%, transparent 60%),
+    var(--grund);
+  background-attachment: fixed;
+  color: var(--schrift);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 3px solid var(--fokus);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+h1 { font-size: clamp(1.6rem, 1.1rem + 2.2vw, 2.3rem); line-height: 1.2; margin: 0 0 .5rem; letter-spacing: -0.01em; }
+h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+
+.sprungmarke {
+  position: absolute; left: -9999px;
+  background: var(--flaeche); color: var(--schrift);
+  padding: .75rem 1rem; z-index: 40; border-radius: var(--radius-klein);
+}
+.sprungmarke:focus { left: .5rem; top: .5rem; }
+
+/* ================= Kopf ================= */
+
+.kopf {
+  background: color-mix(in srgb, var(--flaeche) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--linie);
+  position: sticky; top: 0; z-index: 15;
+}
+
+.kopf-innen {
+  max-width: var(--breite); margin: 0 auto; padding: .7rem 1rem;
+  display: flex; flex-wrap: wrap; gap: .75rem;
+  align-items: center; justify-content: space-between;
+}
+
+.marke { margin: 0; font-weight: 650; font-size: .95rem; display: flex; align-items: center; gap: .5rem; }
+.marke-punkt { width: .6rem; height: .6rem; border-radius: 50%; background: var(--akzent); flex: none; }
+
+.kopf-knoepfe { display: flex; gap: .5rem; }
+
+.knopf-klein {
+  font: inherit; font-size: .9rem; padding: .4rem .8rem;
+  border: 1px solid var(--linie); background: var(--flaeche); color: var(--schrift);
+  border-radius: 999px; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.knopf-klein:hover { border-color: var(--schrift-leise); background: var(--grund-2); }
+
+.fortschritt { max-width: var(--breite); margin: 0 auto; padding: 0 1rem .7rem; }
+.fortschritt p { margin: 0 0 .3rem; font-size: .85rem; color: var(--schrift-leise); }
+.balken { height: 6px; background: var(--linie); border-radius: 999px; overflow: hidden; }
+.balken-fuellung { height: 100%; width: 0; background: var(--akzent); border-radius: 999px; transition: width .45s cubic-bezier(.4,0,.2,1); }
+
+/* ================= Bühne ================= */
+
+.buehne { max-width: var(--breite); margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.buehne:focus { outline: none; }
+
+.bild {
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: calc(var(--radius) + 4px);
+  padding: 2rem 1.75rem 2.25rem;
+  box-shadow: var(--schatten);
+  animation: hereinweich .5s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes hereinweich {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ================= Startseite: die Zeichnung ================= */
+
+.start { text-align: center; }
+
+.bildflaeche {
+  background: linear-gradient(160deg, var(--warm-zart) 0%, var(--akzent-zart) 100%);
+  border-radius: calc(var(--radius) + 2px);
+  padding: 1.4rem 1rem .9rem;
+  margin: -.5rem 0 .9rem;
+}
+
+.illu { display: block; width: 100%; max-width: 29rem; margin: 0 auto; height: auto; }
+
+.illu-linien { stroke: var(--warm); opacity: .8; }
+
+.illu-kreis     { fill: #fff; }
+.illu-kreisrand { fill: none; stroke: var(--akzent); stroke-width: 2.5; }
+.illu-koerper   { fill: var(--akzent); }
+.illu-helm      { fill: var(--warm); }
+.illu-helmkamm  { stroke: var(--warm); stroke-width: 4; stroke-linecap: round; }
+
+.illu-blasen rect { fill: #fff; stroke: var(--akzent); stroke-width: 2; }
+.illu-blasen path { fill: #fff; stroke: none; }
+.illu-blasen text {
+  fill: var(--akzent);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 23px; font-weight: 800;
+  text-anchor: middle;
+}
+
+.blase {
+  transform-origin: center;
+  animation: blaseRein .6s cubic-bezier(.16,1,.3,1) both;
+  animation-delay: var(--verzug, 0ms);
+}
+
+@keyframes blaseRein {
+  from { opacity: 0; transform: scale(.82); }
+  to   { opacity: 1; transform: none; }
+}
+
+.bild-unterschrift {
+  margin: 0 0 1.6rem;
+  font-size: .9rem; font-weight: 600;
+  color: var(--schrift-leise);
+}
+
+/* Zeichen (Icons) */
+.zeichen { width: 1.55rem; height: 1.55rem; display: block; color: var(--akzent); }
+
+
+.start-unter { margin: 0 0 1.25rem; color: var(--schrift-leise); font-size: 1.05rem; }
+.start-text { text-align: left; max-width: 34rem; margin: 0 auto 1.5rem; }
+.start-text p { margin: 0 0 .8rem; }
+
+/* Merkmalsleiste */
+.marken {
+  list-style: none; padding: 0; margin: 0 0 2rem;
+  display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center;
+}
+.marken li {
+  font-size: .85rem; font-weight: 600;
+  padding: .35rem .9rem .35rem .75rem;
+  border: 1px solid var(--linie); border-radius: 999px;
+  background: var(--flaeche); color: var(--schrift-leise);
+  display: flex; align-items: center; gap: .4rem;
+}
+.marken li::before {
+  content: ""; flex: none;
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--warm);
+}
+
+/* ================= Vorbereitung ================= */
+
+.karten { display: grid; gap: .75rem; margin: 1.5rem 0; }
+
+.karte {
+  display: grid; grid-template-columns: 2.5rem 1fr; gap: .9rem;
+  padding: 1rem 1.1rem;
+  background: var(--grund-2);
+  border: 1px solid var(--linie-zart);
+  border-radius: var(--radius);
+}
+.karte-symbol {
+  width: 2.5rem; height: 2.5rem;
+  display: grid; place-items: center;
+  background: var(--akzent-zart);
+  border-radius: 11px;
+  color: var(--akzent);
+}
+.karte h2 { margin: 0 0 .2rem; font-size: 1rem; }
+.karte p { margin: 0; font-size: .95rem; color: var(--schrift-leise); }
+
+.feld-block {
+  margin: 1.25rem 0;
+  padding: 1.1rem 1.15rem;
+  background: var(--grund-2);
+  border: 1px solid var(--linie-zart);
+  border-radius: var(--radius);
+}
+.feld-block p { margin: 0 0 .75rem; font-size: .95rem; color: var(--schrift-leise); }
+
+.stimme-zeile { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.stimme-zeile select {
+  font: inherit; font-size: .95rem; padding: .5rem .6rem;
+  border: 1px solid var(--linie); border-radius: var(--radius-klein);
+  background: var(--flaeche); color: var(--schrift);
+  flex: 1 1 14rem; max-width: 100%;
+}
+
+/* ================= Gespräch ================= */
+
+.gespraech { animation: hereinweich .45s cubic-bezier(.16,1,.3,1) both; }
+.verlauf { display: flex; flex-direction: column; gap: .85rem; }
+
+/* Blockmarke — der weiche Übergang von einem Block zum nächsten */
+.blockmarke {
+  display: flex; align-items: center; gap: .85rem;
+  margin: 1.4rem 0 .35rem;
+  animation: hereinweich .5s cubic-bezier(.16,1,.3,1) both;
+}
+.blockmarke::before, .blockmarke::after {
+  content: ""; height: 1px; background: var(--linie); flex: 1;
+}
+.blockmarke span {
+  font-size: .78rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--akzent); white-space: nowrap;
+}
+
+.beitrag {
+  padding: .9rem 1.15rem;
+  border-radius: var(--radius);
+  max-width: 92%;
+  animation: hereinweich .4s cubic-bezier(.16,1,.3,1) both;
+}
+
+.beitrag-fiona {
+  background: var(--fiona-flaeche);
+  border: 1px solid var(--linie);
+  border-bottom-left-radius: 5px;
+  align-self: flex-start;
+  box-shadow: var(--schatten);
+}
+
+.beitrag-ich {
+  background: var(--ich-flaeche);
+  border: 1px solid var(--linie-zart);
+  border-bottom-right-radius: 5px;
+  align-self: flex-end;
+  white-space: pre-wrap;
+}
+
+.beitrag p { margin: 0 0 .6rem; }
+.beitrag p:last-child { margin-bottom: 0; }
+
+.wer {
+  display: block; font-size: .72rem; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--schrift-leise); margin-bottom: .3rem;
+}
+
+.beitrag-hinweis {
+  background: transparent;
+  border: 1px dashed var(--warnung);
+  color: var(--warnung);
+  align-self: stretch; max-width: 100%; font-size: .92rem;
+}
+
+/* ================= Eingabe ================= */
+
+.eingabe { margin-top: 1.4rem; animation: hereinweich .35s cubic-bezier(.16,1,.3,1) both; }
+
+.eingabe-feld {
+  width: 100%; font: inherit;
+  padding: .85rem .95rem;
+  border: 2px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+  min-height: 6.5rem; resize: vertical;
+  transition: border-color .15s;
+}
+.eingabe-feld:focus { border-color: var(--fokus); }
+#mikroFeld { min-height: 4rem; }
+
+.eingabe-zeile {
+  display: flex; flex-wrap: wrap; gap: .6rem;
+  margin-top: .8rem; align-items: center;
+}
+
+.knopf {
+  font: inherit; font-weight: 650;
+  padding: .72rem 1.35rem;
+  border: 2px solid var(--akzent); background: var(--akzent); color: #fff;
+  border-radius: 999px; cursor: pointer;
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.knopf:hover { background: var(--akzent-dunkel); border-color: var(--akzent-dunkel); }
+.knopf:active { transform: translateY(1px); }
+
+.knopf-gross { font-size: 1.1rem; padding: .9rem 2.4rem; }
+
+.knopf-still {
+  background: var(--flaeche); color: var(--schrift); border-color: var(--linie);
+}
+.knopf-still:hover { background: var(--grund-2); border-color: var(--schrift-leise); }
+
+.knopf-warnung { background: var(--warnung); border-color: var(--warnung); color: #fff; }
+
+.knopf[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* Auswahlfragen: große Flächen statt kleiner Punkte */
+.auswahl { display: flex; flex-direction: column; gap: .55rem; }
+
+.auswahl-knopf {
+  font: inherit; text-align: left;
+  padding: .85rem 1.1rem;
+  border: 2px solid var(--linie);
+  background: var(--flaeche); color: var(--schrift);
+  border-radius: var(--radius); cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.auswahl-knopf:hover { border-color: var(--akzent); background: var(--akzent-zart); }
+.auswahl-knopf:active { transform: translateY(1px); }
+
+.hinweiszeile { font-size: .9rem; color: var(--schrift-leise); margin: .5rem 0 0; }
+
+/* Mikrofonanzeige */
+.hoeranzeige {
+  margin: .6rem 0 !important; font-weight: 650; color: var(--akzent) !important;
+  display: flex; align-items: center; gap: .55rem;
+}
+.hoeranzeige::before {
+  content: ""; width: .8rem; height: .8rem; border-radius: 50%;
+  background: var(--akzent); flex: none;
+}
+.hoeranzeige.hoert::before { animation: pulsen 1.4s ease-in-out infinite; }
+
+@keyframes pulsen {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .3; transform: scale(.7); }
+}
+
+/* ================= Sprechanzeige ================= */
+
+.sprechanzeige {
+  position: fixed; right: 1rem;
+  top: calc(var(--kopfhoehe, 4rem) + .5rem);
+  z-index: 25;
+  display: flex; gap: .85rem; align-items: center;
+  padding: .7rem .95rem;
+  background: var(--flaeche);
+  border: 2px solid var(--akzent);
+  border-radius: 999px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.2);
+  max-width: calc(100% - 2rem);
+  animation: hereinweich .3s ease both;
+}
+
+.sprech-text p { margin: 0 0 .1rem; font-size: .9rem; }
+
+.sprech-knopf {
+  font: inherit; font-size: .78rem; padding: .1rem .4rem;
+  border: 1px solid var(--linie); background: transparent;
+  color: var(--schrift-leise); border-radius: 6px; cursor: pointer;
+}
+.sprech-knopf:hover { color: var(--schrift); border-color: var(--schrift-leise); }
+
+.sprech-balken { display: flex; align-items: flex-end; gap: 3px; height: 1.5rem; }
+.sprech-balken span {
+  display: block; width: 4px; background: var(--akzent);
+  border-radius: 2px; height: 30%;
+  animation: reden 1s ease-in-out infinite;
+}
+.sprech-balken span:nth-child(2) { animation-delay: .15s; }
+.sprech-balken span:nth-child(3) { animation-delay: .3s; }
+.sprech-balken span:nth-child(4) { animation-delay: .45s; }
+
+@keyframes reden {
+  0%, 100% { height: 25%; }
+  50%      { height: 100%; }
+}
+
+/* ================= Zusammenfassung ================= */
+
+.zusammenfassung {
+  width: 100%;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: .95rem; line-height: 1.55;
+  padding: 1rem;
+  border: 2px solid var(--linie); border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+  min-height: 24rem; resize: vertical;
+  /* Damit man sieht, dass man hier schreiben kann. */
+  cursor: text; caret-color: var(--akzent);
+}
+.zusammenfassung:focus { border-color: var(--fokus); }
+
+.kasten {
+  border: 2px solid var(--akzent); border-radius: var(--radius);
+  padding: 1rem 1.15rem; margin-top: 1rem; background: var(--flaeche);
+}
+.kasten h2 { margin-top: 0; }
+.kasten p:last-child { margin-bottom: 0; }
+
+/* ================= Fuß und Fenster ================= */
+
+.fuss { border-top: 1px solid var(--linie); margin-top: 2rem; }
+.fuss p {
+  max-width: var(--breite); margin: 0 auto; padding: 1rem;
+  font-size: .88rem; color: var(--schrift-leise);
+}
+.fuss a, .beitrag a { color: var(--akzent); }
+
+.fenster {
+  border: 1px solid var(--linie); border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+  padding: 1.5rem; max-width: 34rem; width: calc(100% - 2rem);
+  box-shadow: var(--schatten);
+}
+.fenster::backdrop { background: rgba(0,0,0,.55); backdrop-filter: blur(2px); }
+.fenster h2 { margin-top: 0; font-size: 1.25rem; }
+.fenster ul { padding-left: 1.2rem; }
+.fenster li { margin-bottom: .5rem; }
+.fenster-knoepfe { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+
+/* ================= Schmale Bildschirme ================= */
+
+@media (max-width: 34rem) {
+  .bild { padding: 1.5rem 1.1rem 1.75rem; }
+  .beitrag { max-width: 100%; }
+  .knopf, .auswahl-knopf, .knopf-gross { width: 100%; }
+  .eingabe-zeile { flex-direction: column; align-items: stretch; }
+  .karte { grid-template-columns: 2rem 1fr; gap: .7rem; }
+  .sprechanzeige { right: .5rem; padding: .55rem .75rem; }
+}
+
+/* ================= Weniger Bewegung ================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .bild, .gespraech, .beitrag, .blockmarke, .eingabe, .sprechanzeige { animation: none; }
+  .balken-fuellung { transition: none; }
+  .sprech-balken span { animation: none; height: 70%; }
+  .hoeranzeige.hoert::before { animation: none; }
+}
+
+/* ================= Zusammenfassung, gestaltet ================= */
+
+.zf-mappe { display: grid; gap: .9rem; margin-top: .5rem; }
+
+.zf-block {
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem 1.2rem;
+  box-shadow: var(--schatten);
+}
+
+.zf-kopf {
+  display: flex; align-items: center; gap: .75rem;
+  padding-bottom: .8rem; margin-bottom: .9rem;
+  border-bottom: 2px solid var(--akzent-zart);
+}
+
+.zf-symbol {
+  width: 2.3rem; height: 2.3rem; flex: none;
+  display: grid; place-items: center;
+  background: var(--akzent-zart); color: var(--akzent);
+  border-radius: 10px;
+}
+
+.zf-kopf h2 {
+  margin: 0; font-size: .82rem; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--akzent);
+}
+
+.zf-feld + .zf-feld {
+  margin-top: .85rem; padding-top: .85rem;
+  border-top: 1px solid var(--linie-zart);
+}
+
+.zf-feld label {
+  display: block; font-size: .82rem; font-weight: 700;
+  color: var(--schrift-leise); margin-bottom: .3rem;
+}
+
+.zf-eingabe {
+  width: 100%; font: inherit; font-size: .98rem;
+  padding: .55rem .7rem;
+  border: 1px solid var(--linie); border-radius: var(--radius-klein);
+  background: var(--grund-2); color: var(--schrift);
+  resize: none; overflow: hidden;
+  cursor: text; caret-color: var(--akzent);
+  transition: border-color .15s, background .15s;
+}
+.zf-eingabe:hover { border-color: var(--schrift-leise); }
+.zf-eingabe:focus { border-color: var(--fokus); background: var(--flaeche); }
+
+/* Befund im Mikrofontest */
+.befund {
+  margin-top: .7rem; padding: .75rem .9rem;
+  background: var(--akzent-zart);
+  border-radius: var(--radius-klein);
+}
+.befund-text { margin: 0 0 .35rem !important; font-weight: 650; color: var(--schrift) !important; }
+.befund-hinweis { margin: 0 !important; font-size: .88rem; }
+
+/* Der Mauszeiger soll überall zeigen, dass man schreiben kann. */
+.eingabe-feld { cursor: text; caret-color: var(--akzent); }
+
+/* ================= Sperrhinweis für Browser ohne Spracheingabe ================= */
+
+.sperre { text-align: center; }
+
+.sperre-symbol {
+  width: 4rem; height: 4rem; margin: 0 auto 1.2rem;
+  display: grid; place-items: center;
+  background: var(--akzent); border-radius: 50%;
+  color: #fff;
+}
+.sperre-symbol .zeichen { width: 2.1rem; height: 2.1rem; color: #fff; }
+
+.sperre h1 { color: var(--akzent); }
+
+.sperre-text {
+  font-size: 1.12rem; max-width: 32rem; margin: 0 auto 1rem;
+}
+
+.sperre-anleitung {
+  max-width: 32rem; margin: 0 auto 1.5rem;
+  color: var(--schrift-leise); font-size: .98rem;
+}
+
+.sperre-fuss { margin: 1.5rem 0 0; }
+
+.sperre-weiter {
+  font: inherit; font-size: .92rem;
+  background: none; border: none;
+  color: var(--schrift-leise);
+  text-decoration: underline; cursor: pointer;
+  padding: .3rem;
+}
+.sperre-weiter:hover { color: var(--schrift); }
+
+.sperre .eingabe-zeile { justify-content: center; }
+.start .eingabe-zeile  { justify-content: center; }
+
+/* ================= Mikrofontest ================= */
+
+.teststatus {
+  margin: 0 0 .6rem !important;
+  font-weight: 650; font-size: .95rem;
+  display: flex; align-items: center; gap: .5rem;
+  color: var(--schrift) !important;
+}
+.teststatus::before {
+  content: ""; flex: none;
+  width: .7rem; height: .7rem; border-radius: 50%;
+  background: var(--schrift-leise);
+}
+.teststatus-gut::before     { background: #1d7a41; }
+.teststatus-warnung::before { background: var(--warm); }
+.teststatus-fehler::before  { background: var(--akzent); }
+.teststatus-gut     { color: #145c30 !important; }
+.teststatus-warnung { color: var(--warnung) !important; }
+.teststatus-fehler  { color: var(--akzent) !important; }
+
+.pegel {
+  height: 10px; margin: 0 0 .8rem;
+  background: var(--linie); border-radius: 999px; overflow: hidden;
+}
+.pegel-fuellung {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, #1d7a41 0%, var(--warm) 70%, var(--akzent) 100%);
+  border-radius: 999px;
+  transition: width .08s linear;
+}
+
+/* ================= Feuerwehr-Anmutung ================= */
+
+/* Schmaler Warnstreifen unter der Kopfzeile — rot/weiß wie am Fahrzeug. */
+.kopf::after {
+  content: "";
+  display: block; height: 4px;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--akzent) 0 14px,
+    #ffffff 14px 28px
+  );
+  opacity: .9;
+}
+
+/* ================= Blockseite (Themenwechsel) ================= */
+
+.blockseite {
+  text-align: center;
+  padding: 2.5rem 1.5rem 2rem;
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: var(--schatten);
+  animation: hereinweich .5s cubic-bezier(.16,1,.3,1) both;
+}
+
+.blockseite-symbol {
+  width: 4.4rem; height: 4.4rem; margin: 0 auto 1.2rem;
+  display: grid; place-items: center;
+  background: var(--akzent); border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(164,38,44,.25);
+}
+.blockseite-symbol .zeichen { width: 2.3rem; height: 2.3rem; color: #fff; }
+
+.blockseite-nummer {
+  margin: 0 0 .3rem;
+  font-size: .8rem; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--akzent);
+}
+
+.blockseite-titel {
+  margin: 0 0 .9rem;
+  font-size: clamp(1.4rem, 1rem + 1.8vw, 1.9rem);
+  line-height: 1.2;
+}
+
+.blockseite-text {
+  max-width: 32rem; margin: 0 auto 1.8rem;
+  color: var(--schrift-leise);
+}
+
+.blockseite .eingabe-zeile { justify-content: center; margin-top: 0; }
+
+/* ================= Prüfliste im Ton-Fenster ================= */
+
+.pruefliste { padding-left: 1.3rem; margin: .8rem 0 1rem; }
+.pruefliste li { margin-bottom: .55rem; }
+.fenster-fuss { margin: 1rem 0 0; text-align: center; }
