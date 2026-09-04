@@ -61,14 +61,24 @@ Nach einer Änderung: Datei speichern, im Browser **F5** drücken.
 4. Den Formularlink in `leitfaden.js` bei `formularUrl` eintragen.
 5. Selbst einen kompletten Durchlauf machen und prüfen, dass der Text ankommt.
 
-## Veröffentlichen über GitHub Pages
+**Erledigt am 2026-08-29:** Das Formular „Kreisbrandmeister - Aufgaben und
+Erwartungen" ist angelegt, steht auf „Jeder kann antworten" und ist in
+`leitfaden.js` eingetragen.
 
-1. Neues **öffentliches** Repository anlegen, zum Beispiel `fiona-befragung`.
-2. Den Inhalt dieses Ordners hineinlegen.
-3. *Settings → Pages → Source: Deploy from a branch → main / (root)*.
-4. Nach ein paar Minuten liegt die Seite unter
-   `https://<benutzername>.github.io/fiona-befragung/`.
-5. Diesen Link in die Einladungs-E-Mail.
+## Die Seite ist veröffentlicht
+
+**https://fiona-befragung.github.io/**
+
+Das ist der Link für die Einladungs-E-Mail. Ohne Anmeldung, ohne Konto.
+
+Quelle: `github.com/fiona-befragung/fiona-befragung.github.io` (öffentlich).
+Änderungen wirken nach `git push` binnen ein bis zwei Minuten.
+
+```
+git add -A
+git commit -m "kurze Beschreibung der Änderung"
+git push
+```
 
 > **Wichtig:** In dieses Repository gehört **nur** dieser Ordner — keine
 > internen Unterlagen, keine Teilnehmerdaten.
