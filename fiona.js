@@ -1270,6 +1270,36 @@
     hinweis.className = "hinweiszeile";
     hinweis.textContent = "Du kannst jeden Abschnitt direkt ändern oder leeren. Nichts ist verloren, solange Du nicht speicherst.";
 
+    /*
+       Zeichenzaehler. Das Formular nimmt je Feld nur eine begrenzte Zahl
+       Zeichen an; zusammen ergibt das die Obergrenze. Der Zaehler macht
+       sichtbar, wo man steht — sonst faellt es erst beim Speichern auf.
+    */
+    const zaehler = document.createElement("p");
+    zaehler.className = "hinweiszeile zaehler";
+    zaehler.setAttribute("aria-live", "polite");
+
+    function zaehlerAktualisieren() {
+      const felder = KONFIG.formularFelder || [];
+      const grenze = felder.length * (KONFIG.feldGrenze || 4000);
+      if (!KONFIG.formularUrl || !grenze) { zaehler.hidden = true; return; }
+
+      const zahl = (n) => n.toLocaleString("de-DE");
+      const laenge = textAusFeldern(false).length;
+      const zuViel = laenge - grenze;
+
+      if (zuViel > 0) {
+        zaehler.textContent = "Zu lang: " + zahl(laenge) + " von höchstens " + zahl(grenze)
+          + " Zeichen. Bitte noch rund " + zahl(zuViel) + " Zeichen kürzen.";
+        zaehler.classList.add("zaehler-warnung");
+      } else {
+        zaehler.textContent = zahl(laenge) + " von " + zahl(grenze) + " Zeichen.";
+        zaehler.classList.remove("zaehler-warnung");
+      }
+    }
+
+    abschlussFelder.forEach((e) => e.feld.addEventListener("input", zaehlerAktualisieren));
+
     const zeile = document.createElement("div");
     zeile.className = "eingabe-zeile";
 
@@ -1290,10 +1320,44 @@
 
     eingabe.appendChild(mappe);
     eingabe.appendChild(hinweis);
+    eingabe.appendChild(zaehler);
     eingabe.appendChild(zeile);
 
     // Erst nach dem Einhängen hat scrollHeight einen sinnvollen Wert.
     abschlussFelder.forEach((e) => hoeheAnpassen(e.feld));
+    zaehlerAktualisieren();
+  }
+
+  /*
+     Der Text passt auch aufgeteilt nicht ins Formular. Dann wird NICHT
+     gespeichert, sondern gesagt, um wie viel zu kuerzen ist. Die
+     Zusammenfassung bleibt stehen und aenderbar — es geht nichts verloren.
+  */
+  function zuLangMelden(laenge, grenze) {
+    const zahl = (n) => n.toLocaleString("de-DE");
+
+    const alt = document.getElementById("zuLangHinweis");
+    if (alt) alt.remove();
+
+    const kasten = document.createElement("div");
+    kasten.className = "kasten kasten-warnung";
+    kasten.id = "zuLangHinweis";
+    kasten.setAttribute("role", "alert");
+
+    const h = document.createElement("h2");
+    h.textContent = ABSCHLUSS.zuLangUeberschrift;
+    kasten.appendChild(h);
+
+    const p = document.createElement("p");
+    p.className = "kasten-wichtig";
+    p.textContent = (ABSCHLUSS.zuLangText || "")
+      .replace("{grenze}", zahl(grenze))
+      .replace("{laenge}", zahl(laenge))
+      .replace("{zuviel}", zahl(laenge - grenze));
+    kasten.appendChild(p);
+
+    eingabe.appendChild(kasten);
+    kasten.scrollIntoView({ behavior: "smooth", block: "center" });
   }
   /* ================================================================ */
   /* Speichern                                                         */
@@ -1337,26 +1401,79 @@
      abgesendet wird.
   */
 
-  function formularAdresse(text) {
-    if (!KONFIG.formularUrl) return null;
-    if (!KONFIG.formularFeld) return null;
+  /*
+     Den Text auf mehrere Formularfelder verteilen.
 
-    const adresse = KONFIG.formularUrl + "&" + KONFIG.formularFeld + "=" + encodeURIComponent(text);
+     Getrennt wird moeglichst an einer Absatzgrenze, sonst an einem
+     Zeilenumbruch, sonst an einem Leerzeichen — damit kein Satz und kein
+     Themenblock mitten durchgeschnitten wird. Erst wenn gar nichts davon
+     geht, wird hart getrennt.
+  */
+  function textAufteilen(text, grenze) {
+    const teile = [];
+    let rest = text.trim();
+
+    while (rest.length > grenze) {
+      let schnitt = rest.lastIndexOf("\n\n", grenze);
+      if (schnitt < grenze / 2) schnitt = rest.lastIndexOf("\n", grenze);
+      if (schnitt < grenze / 2) schnitt = rest.lastIndexOf(" ", grenze);
+      if (schnitt < grenze / 2) schnitt = grenze;
+      teile.push(rest.slice(0, schnitt).trim());
+      rest = rest.slice(schnitt).trim();
+    }
+    if (rest) teile.push(rest);
+    return teile;
+  }
+
+  /*
+     Adresse mit vorausgefuellten Feldern bauen. Gibt null zurueck, wenn es
+     mehr Teile als Felder gibt oder die Adresse zu lang wuerde — dann geht es
+     ueber die Zwischenablage.
+  */
+  function formularAdresse(teile) {
+    if (!KONFIG.formularUrl) return null;
+
+    const felder = KONFIG.formularFelder || [];
+    if (!felder.length) return null;
+    if (!teile.length || teile.length > felder.length) return null;
+
+    let adresse = KONFIG.formularUrl;
+    teile.forEach((teil, i) => {
+      adresse += "&" + felder[i] + "=" + encodeURIComponent(teil);
+    });
     return adresse.length <= (KONFIG.urlGrenze || 3800) ? adresse : null;
   }
 
   async function speichern() {
-    tonAus();
-    zustand.fertig = true;
-
-    // Schmuckfassung fuer Download und Zwischenablage, knappe fuer die Adresse.
+    // Schmuckfassung fuer Download und Zwischenablage, knappe fuers Formular.
     const text = textAusFeldern(true);
     const knapp = textAusFeldern(false);
 
+    const testbetrieb = !KONFIG.formularUrl;
+    const felder = KONFIG.formularFelder || [];
+    const feldGrenze = KONFIG.feldGrenze || 4000;
+    const gesamtGrenze = felder.length * feldGrenze;
+
+    /*
+       Sicherheitsnetz. Passt der Text auch aufgeteilt nicht mehr ins
+       Formular, wird NICHT gespeichert. Sonst schneidet Microsoft still bei
+       der Feldgrenze ab und der Schluss der Antwort geht verloren, ohne dass
+       es jemand merkt. Lieber einmal kuerzen lassen als still verlieren.
+    */
+    if (!testbetrieb && gesamtGrenze && knapp.length > gesamtGrenze) {
+      zuLangMelden(knapp.length, gesamtGrenze);
+      return;
+    }
+
+    tonAus();
+    zustand.fertig = true;
+
+    // Auf die Formularfelder verteilen (meist nur ein Teil).
+    const teile = testbetrieb ? [] : textAufteilen(knapp, feldGrenze);
+
     eingabeLeeren();
 
-    const testbetrieb = !KONFIG.formularUrl;
-    const vorausgefuellt = testbetrieb ? null : formularAdresse(knapp);
+    const vorausgefuellt = testbetrieb ? null : formularAdresse(teile);
 
     /*
        Das Fenster MUSS hier aufgehen, direkt im Klick — vor jedem await.
@@ -1371,10 +1488,16 @@
       window.open(vorausgefuellt || KONFIG.formularUrl, "_blank", "noopener");
     }
 
-    // Auch bei vorausgefuelltem Text in die Zwischenablage legen — falls das
-    // Formular den Text wider Erwarten nicht uebernimmt.
+    /*
+       Auch bei vorausgefuelltem Text in die Zwischenablage legen — falls das
+       Formular ihn wider Erwarten nicht uebernimmt.
+
+       Kopiert wird der ERSTE TEIL in der knappen Fassung, nicht die
+       geschmueckte: Nur die knappe passt in ein Formularfeld. Die geschmueckte
+       ist laenger und wuerde beim Einfuegen still abgeschnitten.
+    */
     let kopiert = false;
-    if (!testbetrieb) kopiert = await inZwischenablage(text);
+    if (!testbetrieb && teile.length) kopiert = await inZwischenablage(teile[0]);
 
     beitragFiona(ABSCHLUSS.nachDemSpeichern);
 
@@ -1408,34 +1531,72 @@
       kasten.appendChild(nochmalK);
 
     } else {
+      const mehrteilig = teile.length > 1;
+
       const h = document.createElement("h2");
-      h.textContent = "Noch zwei Handgriffe";
+      h.textContent = mehrteilig ? "Deine Antwort kommt in mehreren Teilen" : "Noch zwei Handgriffe";
       kasten.appendChild(h);
 
-      if (kopiert) {
-        const schritte = document.createElement("ol");
-        schritte.className = "schrittliste";
-        ABSCHLUSS.formularSchritte.forEach((satz) => {
-          const li = document.createElement("li");
-          li.textContent = satz;
-          schritte.appendChild(li);
-        });
-        kasten.appendChild(schritte);
-      } else {
+      if (mehrteilig) {
         const p = document.createElement("p");
         p.className = "kasten-wichtig";
-        p.textContent = "Markiere den Text unten, klick mit der rechten Maustaste darauf und wähle „Kopieren“. Dann im Formular mit der rechten Maustaste in das große Feld klicken und „Einfügen“ wählen. (Mit Tastatur: Strg und C, dann Strg und V.)";
+        p.textContent = ABSCHLUSS.formularTeileEinleitung;
         kasten.appendChild(p);
       }
 
-      if (!kopiert) {
+      const schritte = document.createElement("ol");
+      schritte.className = "schrittliste";
+      (mehrteilig ? ABSCHLUSS.formularTeileSchritte : ABSCHLUSS.formularSchritte).forEach((satz) => {
+        const li = document.createElement("li");
+        li.textContent = satz;
+        schritte.appendChild(li);
+      });
+      kasten.appendChild(schritte);
+
+      /*
+         Fuer jeden Teil ein eigener Kasten mit Kopieren-Knopf. Auch bei nur
+         einem Teil: Der Knopf ersetzt die Tastenkombination, die viele nicht
+         kennen. Der Text steht sichtbar daneben, damit klar ist, was kopiert
+         wird — und damit es auch dann geht, wenn die Zwischenablage klemmt.
+      */
+      teile.forEach((teil, i) => {
+        const abschnitt = document.createElement("div");
+        abschnitt.className = "teil-kasten";
+
+        const ueber = document.createElement("h3");
+        ueber.textContent = mehrteilig
+          ? "Teil " + (i + 1) + " von " + teile.length + " — in das " + (i + 1) + ". Feld des Formulars"
+          : "Dein Text";
+        abschnitt.appendChild(ueber);
+
         const feld = document.createElement("textarea");
         feld.className = "zusammenfassung";
         feld.readOnly = true;
-        feld.value = text;
-        feld.setAttribute("aria-label", "Dein Text zum Kopieren");
-        kasten.appendChild(feld);
-      }
+        feld.value = teil;
+        feld.id = "teil_" + (i + 1);
+        feld.setAttribute("aria-label", mehrteilig ? "Teil " + (i + 1) + " zum Kopieren" : "Dein Text zum Kopieren");
+        abschnitt.appendChild(feld);
+
+        const knopf = document.createElement("button");
+        knopf.type = "button";
+        knopf.className = "knopf";
+        knopf.textContent = mehrteilig ? "Teil " + (i + 1) + " kopieren" : "Text kopieren";
+        knopf.addEventListener("click", async () => {
+          const ok = await inZwischenablage(teil);
+          if (ok) {
+            knopf.textContent = mehrteilig ? "Teil " + (i + 1) + " kopiert ✓" : "Kopiert ✓";
+          } else {
+            // Zwischenablage gesperrt: dann wenigstens alles markieren, damit
+            // nur noch die rechte Maustaste und „Kopieren" fehlen.
+            feld.focus();
+            feld.select();
+            knopf.textContent = "Text ist markiert — rechte Maustaste, „Kopieren“";
+          }
+        });
+        abschnitt.appendChild(knopf);
+
+        kasten.appendChild(abschnitt);
+      });
 
       const formularK = document.createElement("button");
       formularK.type = "button";

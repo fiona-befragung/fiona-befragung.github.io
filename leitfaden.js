@@ -34,19 +34,45 @@ const KONFIG = {
      Wird die Frage geloescht und neu angelegt, aendert sich der Name.
 
      Leer lassen, wenn der Text stattdessen von Hand eingefuegt werden soll.
+
+     Es sind DREI Felder, weil Forms je Textfeld hoechstens 4.000 Zeichen
+     annimmt (siehe feldGrenze). Fiona verteilt die Zusammenfassung der Reihe
+     nach darauf. Teil 2 und 3 sind im Formular bewusst KEINE Pflichtfelder —
+     sonst koennte niemand mit kurzer Antwort mehr absenden.
   */
-  formularFeld: "r0886e26f09a845acbb4e477665e6df9d",
+  formularFelder: [
+    "r0886e26f09a845acbb4e477665e6df9d", // Teil 1 (Pflichtfeld)
+    "r7ece61cd06d14350881fe2a4916f2a2d", // Teil 2 (freiwillig)
+    "rc00261eebbfd4df58b7706f213979086", // Teil 3 (freiwillig)
+  ],
+
+  /*
+     Hoechstzahl Zeichen je Formularfeld. Am 2026-09-05 im laufenden Formular
+     nachgesehen: das Textfeld traegt maxlength="4000".
+
+     Warum das wichtig ist — Microsoft haelt sich unterschiedlich daran:
+     - Beim Vorausfuellen ueber die Adresse wird die Grenze UMGANGEN. Der zu
+       lange Text steht im Feld, aber das Absenden scheitert danach mit
+       „Das hat nicht geklappt", ohne einen Grund zu nennen.
+     - Beim Einfuegen von Hand schneidet der Browser still bei 4.000 ab. Der
+       Teilnehmer merkt nichts, und der Schluss seiner Antwort fehlt.
+     Genau deshalb wird auf mehrere Felder verteilt.
+  */
+  feldGrenze: 4000,
 
   /*
      Hoechstlaenge der Adresse. Laengere Zusammenfassungen passen nicht in
      eine Adresszeile — dann faellt die Seite auf den Weg ueber die
      Zwischenablage zurueck.
 
-     Gemessen am 2026-08-29: Microsoft Forms nimmt Adressen bis rund 8.000
-     Zeichen an, ab etwa 10.000 antwortet es mit „nicht gefunden". 7.000 laesst
-     genug Luft. Das reicht fuer eine Zusammenfassung mit rund 60 Zeichen je
-     Antwort; wer laenger erzaehlt, bekommt automatisch den Weg ueber die
-     Zwischenablage.
+     Genau ausgemessen am 2026-09-05: bis 8.100 Zeichen laedt die Seite, ab
+     8.192 kommt „nicht gefunden". Das ist die uebliche 8-Kilobyte-Grenze.
+     7.800 laesst etwas Luft und bleibt deshalb stehen.
+
+     Zum Mitrechnen: Deutscher Text blaeht beim Kodieren um rund die Haelfte
+     auf — jedes „ä" wird zu sechs Zeichen, jedes Leerzeichen zu drei. Nutzbar
+     sind damit etwa 5.000 Zeichen echter Text. Wer laenger erzaehlt, bekommt
+     den Weg ueber die Zwischenablage, egal wie viele Felder es gibt.
   */
   urlGrenze: 7800,
 
@@ -575,5 +601,18 @@ const ABSCHLUSS = {
     "Dann auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
   ],
   formularNochmal: "Formular noch einmal öffnen",
+  /*
+     Wenn der Text auf mehrere Formularfelder verteilt werden musste UND die
+     Adresse zu lang war. Dann muss jeder Teil einzeln eingefuegt werden.
+  */
+  formularTeileEinleitung: "Deine Antwort ist ausführlich geworden — schön. Sie passt deshalb nicht in ein einziges Formularfeld, sondern wird auf mehrere verteilt. Unten steht jeder Teil mit einem eigenen Knopf zum Kopieren.",
+  formularTeileSchritte: [
+    "Das Formular ist schon offen — wechsle in den anderen Tab.",
+    "Kopiere hier Teil 1, füge ihn im Formular in das erste Feld ein (rechte Maustaste → „Einfügen“), und so weiter für jeden weiteren Teil.",
+    "Dann auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
+  ],
+  // Sicherheitsnetz: Der Text passt auch aufgeteilt nicht mehr ins Formular.
+  zuLangUeberschrift: "Der Text ist noch zu lang",
+  zuLangText: "Das Formular nimmt insgesamt höchstens {grenze} Zeichen an. Dein Text hat {laenge} — das sind {zuviel} zu viel. Bitte kürze ihn oben noch etwas, dann klappt das Speichern. Ich schneide nichts von allein ab: Was Du geschrieben hast, soll vollständig ankommen oder gar nicht.",
   testbetrieb: "TESTBETRIEB: Es ist noch kein Formular hinterlegt, es wird nichts abgeschickt. Du kannst den Text herunterladen.",
 };

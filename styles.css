@@ -714,3 +714,29 @@ h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
 
 .schrittliste { margin: .6rem 0 1rem; padding-left: 1.4rem; }
 .schrittliste li { margin-bottom: .5rem; font-weight: 500; }
+
+/* ================= Zeichenzaehler und Teile ================= */
+
+/* Zaehler auf dem Zusammenfassungs-Bildschirm. Das Formular nimmt nur eine
+   begrenzte Zahl Zeichen an — das soll man sehen, bevor man speichert. */
+.zaehler { font-variant-numeric: tabular-nums; }
+.zaehler-warnung {
+  /* Die Warnung steht immer auch im Text ("Zu lang: ..."), nie nur in der
+     Farbe — sonst wuerde sie an Farbsehschwaechen vorbeigehen. */
+  color: var(--warnung);
+  font-weight: 700;
+}
+
+/* Ein Teil der Antwort, der in ein eigenes Formularfeld gehoert. */
+.teil-kasten {
+  border: 1px solid var(--linie);
+  border-radius: var(--radius-klein);
+  padding: .9rem 1rem;
+  margin: 1rem 0;
+  background: var(--grund-2);
+}
+.teil-kasten h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.teil-kasten .zusammenfassung { min-height: 10rem; margin-bottom: .7rem; }
+
+/* Kasten, der auf ein Problem hinweist statt auf den naechsten Schritt. */
+.kasten-warnung { border-color: var(--warnung); }
