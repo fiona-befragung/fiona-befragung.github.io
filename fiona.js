@@ -1424,7 +1424,7 @@
       } else {
         const p = document.createElement("p");
         p.className = "kasten-wichtig";
-        p.textContent = "Markiere den Text unten, kopiere ihn mit Strg und C, und füge ihn im Formular mit Strg und V ein.";
+        p.textContent = "Markiere den Text unten, klick mit der rechten Maustaste darauf und wähle „Kopieren“. Dann im Formular mit der rechten Maustaste in das große Feld klicken und „Einfügen“ wählen. (Mit Tastatur: Strg und C, dann Strg und V.)";
         kasten.appendChild(p);
       }
 

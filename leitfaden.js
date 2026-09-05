@@ -564,14 +564,14 @@ const ABSCHLUSS = {
     "Die Ergebnisse aus allen Gesprächen werden zusammengefasst und in einer Sitzung vorgestellt.",
   ],
   // Anleitung für das Einfügen ins Formular.
-  formularAnleitung: "Der Text liegt jetzt in der Zwischenablage. Im Formular, das sich gleich öffnet, klickst Du in das große Feld und drückst Strg und V. Dann auf Absenden.",
+  formularAnleitung: "Der Text liegt jetzt in der Zwischenablage. Im Formular, das sich gleich öffnet, klickst Du mit der rechten Maustaste in das große Feld und wählst „Einfügen“. Am Handy oder Tablet: lange auf das Feld tippen, dann „Einfügen“. Danach auf Absenden.",
   // Wenn die Zusammenfassung direkt ins Formular geschrieben werden konnte:
   formularFertig: "Das Formular ist offen, und Deine Zusammenfassung steht schon drin. Bitte dort nur noch nach unten scrollen und auf ABSENDEN klicken — erst dann ist Deine Antwort gespeichert.",
   formularOeffnen: "Formular öffnen",
   // Wenn der Text zu lang fuer die Adresse war: die zwei Handgriffe.
   formularSchritte: [
     "Das Formular ist schon offen — wechsle in den anderen Tab.",
-    "Klick in das große Feld und drück Strg und V. Dein Text ist bereits kopiert.",
+    "Dein Text ist bereits kopiert. Klick mit der rechten Maustaste in das große Feld und wähle „Einfügen“. Am Handy oder Tablet: lange auf das Feld tippen, dann „Einfügen“. Wer die Tastatur mag: Strg und V geht auch.",
     "Dann auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
   ],
   formularNochmal: "Formular noch einmal öffnen",
