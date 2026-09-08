@@ -726,17 +726,12 @@ h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
   color: var(--warnung);
   font-weight: 700;
 }
+/* Schrittliste beim Abschicken in mehreren Teilen. Der Zustand steht immer
+   auch im Text ("jetzt dran"), nie allein in der Farbe. */
+.schritt-dran { font-weight: 700; }
+.schritt-offen { color: var(--schrift-leise); }
 
-/* Ein Teil der Antwort, der in ein eigenes Formularfeld gehoert. */
-.teil-kasten {
-  border: 1px solid var(--linie);
-  border-radius: var(--radius-klein);
-  padding: .9rem 1rem;
-  margin: 1rem 0;
-  background: var(--grund-2);
-}
-.teil-kasten h3 { margin: 0 0 .6rem; font-size: 1rem; }
-.teil-kasten .zusammenfassung { min-height: 10rem; margin-bottom: .7rem; }
+
 
 /* Kasten, der auf ein Problem hinweist statt auf den naechsten Schritt. */
 .kasten-warnung { border-color: var(--warnung); }

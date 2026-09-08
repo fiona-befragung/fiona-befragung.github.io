@@ -61,20 +61,33 @@ const KONFIG = {
   feldGrenze: 4000,
 
   /*
-     Hoechstlaenge der Adresse. Laengere Zusammenfassungen passen nicht in
-     eine Adresszeile — dann faellt die Seite auf den Weg ueber die
-     Zwischenablage zurueck.
+     Hoechstlaenge der Adresse. Sie begrenzt, wie viel Text in EINE Absendung
+     passt — laengere Antworten werden auf mehrere verteilt (siehe
+     maxPortionen).
 
      Genau ausgemessen am 2026-09-05: bis 8.100 Zeichen laedt die Seite, ab
      8.192 kommt „nicht gefunden". Das ist die uebliche 8-Kilobyte-Grenze.
      7.800 laesst etwas Luft und bleibt deshalb stehen.
 
      Zum Mitrechnen: Deutscher Text blaeht beim Kodieren um rund die Haelfte
-     auf — jedes „ä" wird zu sechs Zeichen, jedes Leerzeichen zu drei. Nutzbar
-     sind damit etwa 5.000 Zeichen echter Text. Wer laenger erzaehlt, bekommt
-     den Weg ueber die Zwischenablage, egal wie viele Felder es gibt.
+     auf — jedes „ä" wird zu sechs Zeichen, jedes Leerzeichen zu drei. In eine
+     Absendung passen damit etwa 5.000 Zeichen echter Text.
+
+     Am 2026-09-08 vergeblich versucht, mehr unterzubringen: Leerzeichen als
+     „+" statt „%20" schreibt Forms woertlich ins Feld, und den Inhalt einer
+     POST-Absendung liest Forms gar nicht erst. Es bleibt bei der Adresse.
   */
   urlGrenze: 7800,
+
+  /*
+     Hoechstzahl der Absendungen. Passt der Text nicht in eine Adresse, wird
+     er auf mehrere Formulare verteilt — der Teilnehmer klickt dann je
+     Formular einmal ABSENDEN. Kopiert wird nie.
+
+     Fuenf Absendungen entsprechen rund 25.000 Zeichen. Wer mehr schreibt,
+     wird gebeten zu kuerzen: Ab da ist das Klicken selbst eine Zumutung.
+  */
+  maxPortionen: 5,
 
   // Dateiname für den Download der eigenen Antworten.
   dateiname: "Meine-Antworten-Kreisbrandmeister.txt",
@@ -746,27 +759,19 @@ const ABSCHLUSS = {
      [Quelle: nachgewiesen am 2026-09-08]
   */
   formularLeerHinweis: "Steht im Formular nichts oder etwas Altes? Dann schließ den Formular-Tab ganz, komm hierher zurück und klick unten auf „Formular noch einmal öffnen“. Dein Text ist hier weiter sicher.",
-  formularOeffnen: "Formular öffnen",
-  // Wenn der Text zu lang fuer die Adresse war: die zwei Handgriffe.
-  formularSchritte: [
-    "Klick unten auf „Text kopieren“. Dein Text liegt dann bereit.",
-    "Dann auf „Formular öffnen“. Dort mit der rechten Maustaste in das große Feld klicken und „Einfügen“ wählen. Am Handy oder Tablet: lange auf das Feld tippen, dann „Einfügen“. Wer die Tastatur mag: Strg und V geht auch.",
-    "Zum Schluss im Formular auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
-  ],
   formularNochmal: "Formular noch einmal öffnen",
   /*
-     Wenn der Text auf mehrere Formularfelder verteilt werden musste UND die
-     Adresse zu lang war. Dann muss jeder Teil einzeln eingefuegt werden.
+     Wenn die Antwort auf mehrere Absendungen verteilt wird. Es wird nichts
+     mehr kopiert — jedes Formular ist fertig ausgefuellt, der Teilnehmer
+     klickt nur ABSENDEN.
   */
-  formularTeileEinleitung: "Deine Antwort ist ausführlich geworden — schön. Sie passt deshalb nicht in ein einziges Formularfeld, sondern wird auf mehrere verteilt. Unten steht jeder Teil mit einem eigenen Knopf zum Kopieren. Das Formular öffnest Du gleich selbst — lass dieses Fenster dabei offen, Du brauchst es noch.",
-  formularTeileSchritte: [
-    "Klick beim ersten Kasten auf „Teil 1 kopieren“.",
-    "Dann ganz unten auf „Formular öffnen“. Im Formular mit der rechten Maustaste in das erste Feld klicken und „Einfügen“ wählen. Am Handy: lange auf das Feld tippen.",
-    "Für jeden weiteren Teil: zurück in dieses Fenster, „Teil 2 kopieren“, im Formular in das zweite Feld einfügen — und so weiter.",
-    "Zum Schluss im Formular auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
-  ],
+  schritteText: "Deine Antwort ist ausführlich geworden — schön. Sie wird deshalb in mehreren Schritten abgeschickt. Jedes Formular ist bereits fertig ausgefüllt: Du klickst dort nur unten auf ABSENDEN, kommst hierher zurück und schickst den nächsten Teil ab. Es ist nichts abzutippen und nichts zu kopieren. Bitte lass dieses Fenster dabei offen.",
+  schritteFertig: "Das war der letzte Teil. Wenn Du in jedem Formular auf ABSENDEN geklickt hast, ist Deine Antwort vollständig angekommen. Danke, dass Du Dir die Zeit genommen hast.",
+  // Transparenz: Warum in jedem Teil eine Nummer steht.
+  schritteNummer: "In jedem Teil steht oben „Gespräch {nummer}“. Diese Nummer ist gewürfelt und sagt nichts über Dich aus — sie sorgt nur dafür, dass die Teile bei der Auswertung wieder zusammenfinden.",
+  formularLeerHinweisSchritte: "Ist ein Formular leer oder steht Altes darin? Dann schließ den Formular-Tab ganz und klick hier noch einmal auf den Knopf.",
   // Sicherheitsnetz: Der Text passt auch aufgeteilt nicht mehr ins Formular.
-  zuLangUeberschrift: "Der Text ist noch zu lang",
-  zuLangText: "Das Formular nimmt insgesamt höchstens {grenze} Zeichen an. Dein Text hat {laenge} — das sind {zuviel} zu viel. Bitte kürze ihn oben noch etwas, dann klappt das Speichern. Ich schneide nichts von allein ab: Was Du geschrieben hast, soll vollständig ankommen oder gar nicht.",
+  zuLangUeberschrift: "Der Text ist sehr lang geworden",
+  zuLangText: "Dein Text hat {laenge} Zeichen. Er müsste auf {portionen} Formulare verteilt werden — mehr als die {hoechstens}, die ich Dir zumuten möchte. Bitte kürze ihn oben noch etwas. Ich schneide nichts von allein ab: Was Du geschrieben hast, soll vollständig ankommen oder gar nicht.",
   testbetrieb: "TESTBETRIEB: Es ist noch kein Formular hinterlegt, es wird nichts abgeschickt. Du kannst den Text herunterladen.",
 };

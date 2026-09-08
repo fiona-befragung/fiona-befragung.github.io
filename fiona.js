@@ -1367,23 +1367,33 @@
     zaehler.className = "hinweiszeile zaehler";
     zaehler.setAttribute("aria-live", "polite");
 
+    /*
+       Der Zaehler sagt nicht mehr "X von 12.000" — seit die Antwort auf
+       mehrere Absendungen verteilt wird, gibt es keine feste Obergrenze mehr.
+       Stattdessen steht da, in wie vielen Schritten sie abgeschickt wird.
+       Das ist die Zahl, die den Teilnehmer wirklich betrifft.
+    */
     function zaehlerAktualisieren() {
-      const felder = KONFIG.formularFelder || [];
-      const grenze = felder.length * (KONFIG.feldGrenze || 4000);
-      if (!KONFIG.formularUrl || !grenze) { zaehler.hidden = true; return; }
+      if (!KONFIG.formularUrl) { zaehler.hidden = true; return; }
 
       const zahl = (n) => n.toLocaleString("de-DE");
-      const laenge = textAusFeldern(false).length;
-      const zuViel = laenge - grenze;
+      const knapp = textAusFeldern(false);
+      const laenge = knapp.length;
+      const portionen = portionenBilden(knapp);
+      const hoechstens = KONFIG.maxPortionen || 5;
 
-      if (zuViel > 0) {
-        zaehler.textContent = "Zu lang: " + zahl(laenge) + " von höchstens " + zahl(grenze)
-          + " Zeichen. Bitte noch rund " + zahl(zuViel) + " Zeichen kürzen.";
+      if (!portionen || portionen.length > hoechstens) {
+        zaehler.textContent = "Sehr lang: " + zahl(laenge) + " Zeichen. Das wären mehr als "
+          + hoechstens + " Formulare. Bitte kürze den Text etwas.";
         zaehler.classList.add("zaehler-warnung");
-      } else {
-        zaehler.textContent = zahl(laenge) + " von " + zahl(grenze) + " Zeichen.";
-        zaehler.classList.remove("zaehler-warnung");
+        return;
       }
+
+      zaehler.classList.remove("zaehler-warnung");
+      zaehler.textContent = portionen.length === 1
+        ? zahl(laenge) + " Zeichen — wird in einem Schritt abgeschickt."
+        : zahl(laenge) + " Zeichen — wird in " + portionen.length + " Schritten abgeschickt. Du klickst dabei "
+          + portionen.length + "-mal auf ABSENDEN, mehr nicht.";
     }
 
     abschlussFelder.forEach((e) => e.feld.addEventListener("input", zaehlerAktualisieren));
@@ -1421,7 +1431,7 @@
      gespeichert, sondern gesagt, um wie viel zu kuerzen ist. Die
      Zusammenfassung bleibt stehen und aenderbar — es geht nichts verloren.
   */
-  function zuLangMelden(laenge, grenze) {
+  function zuLangMelden(laenge, portionen, hoechstens) {
     const zahl = (n) => n.toLocaleString("de-DE");
 
     const alt = document.getElementById("zuLangHinweis");
@@ -1439,9 +1449,9 @@
     const p = document.createElement("p");
     p.className = "kasten-wichtig";
     p.textContent = (ABSCHLUSS.zuLangText || "")
-      .replace("{grenze}", zahl(grenze))
       .replace("{laenge}", zahl(laenge))
-      .replace("{zuviel}", zahl(laenge - grenze));
+      .replace("{portionen}", portionen ? String(portionen) : "sehr viele")
+      .replace("{hoechstens}", String(hoechstens));
     kasten.appendChild(p);
 
     eingabe.appendChild(kasten);
@@ -1532,70 +1542,208 @@
     return adresse.length <= (KONFIG.urlGrenze || 3800) ? adresse : null;
   }
 
+  /* ================================================================ */
+  /* Auf mehrere Absendungen verteilen                                 */
+  /* ================================================================ */
+  /*
+     In eine Adresse passen rund 5.000 Zeichen Text — mehr nimmt Microsoft
+     nicht an, und daran ist nichts zu drehen: Weder mehr Formularfelder noch
+     eine sparsamere Schreibweise noch das Uebergeben per POST helfen (alles
+     am 2026-09-08 durchprobiert).
+
+     Frueher blieb bei laengeren Antworten nur das Kopieren von Hand. Das war
+     dem Nutzer zu umstaendlich — zu Recht. Also wird der Text jetzt in
+     PORTIONEN zerlegt: Jede fuellt ein eigenes, fertig ausgefuelltes
+     Formular. Der Teilnehmer klickt je Portion nur noch ABSENDEN.
+     [Quelle: Gespraech 2026-09-08]
+
+     Jede Portion traegt oben eine Zeile "Gespräch 4711 - Teil 2 von 3". Die
+     Nummer ist gewuerfelt und sagt nichts ueber die Person — sie dient allein
+     dazu, die Zeilen bei der Auswertung wieder zusammenzusetzen.
+  */
+
+  function gespraechsNummer() {
+    if (!zustand.nummer) {
+      zustand.nummer = String(Math.floor(1000 + Math.random() * 9000));
+    }
+    return zustand.nummer;
+  }
+
+  function kopfzeile(nummer, i, von) {
+    return "Gespräch " + nummer + " - Teil " + i + " von " + von + "\n\n";
+  }
+
+  /*
+     Wo darf getrennt werden? Moeglichst am Absatz, sonst an der Zeile, sonst
+     am Wort. Zurueckgegeben wird die Stelle, nicht der Text — sonst stimmen
+     nach dem Abschneiden von Leerraum die Laengen nicht mehr ueberein.
+  */
+  function schnittStelle(text, obergrenze) {
+    if (text.length <= obergrenze) return text.length;
+    let s = text.lastIndexOf("\n\n", obergrenze);
+    if (s < obergrenze / 2) s = text.lastIndexOf("\n", obergrenze);
+    if (s < obergrenze / 2) s = text.lastIndexOf(" ", obergrenze);
+    if (s < obergrenze / 2) s = obergrenze;
+    return s;
+  }
+
+  function portionenBilden(text) {
+    const felder = KONFIG.formularFelder || [];
+    const feldGrenze = KONFIG.feldGrenze || 4000;
+    if (!felder.length) return null;
+
+    // Beim Messen die Kopfzeile mitrechnen — sie kommt spaeter oben drauf.
+    // Zweistellige Platzhalter, damit die Probe nie zu knapp ausfaellt.
+    const probeKopf = kopfzeile("8888", 9, 9);
+
+    const passt = (stueck) => {
+      const teile = textAufteilen(stueck, feldGrenze);
+      if (teile.length > felder.length) return false;
+      return formularAdresse(teile) !== null;
+    };
+
+    const roh = [];
+    let rest = text.trim();
+    let schutz = 0;
+
+    while (rest.length && schutz++ < 40) {
+      let obergrenze = rest.length;
+      let gewaehlt = -1;
+
+      while (obergrenze > 0) {
+        const s = schnittStelle(rest, obergrenze);
+        const kandidat = rest.slice(0, s).trim();
+        if (kandidat && passt(probeKopf + kandidat)) { gewaehlt = s; break; }
+        obergrenze = Math.floor(obergrenze * 0.85);
+      }
+
+      if (gewaehlt < 0) return null;      // kein Stueck passt — sollte nie sein
+      roh.push(rest.slice(0, gewaehlt).trim());
+      rest = rest.slice(gewaehlt).trim();
+    }
+    if (rest.length) return null;
+    if (!roh.length) return null;
+
+    const nummer = gespraechsNummer();
+    return roh.map((stueck, i) => {
+      const voll = kopfzeile(nummer, i + 1, roh.length) + stueck;
+      const teile = textAufteilen(voll, feldGrenze);
+      return { text: voll, teile: teile, adresse: formularAdresse(teile) };
+    });
+  }
+
+  /*
+     Die Schritte anzeigen, wenn es mehr als eine Absendung braucht.
+
+     Immer nur EIN Knopf: der fuer den Teil, der als naechstes dran ist. Eine
+     Wand aus Knoepfen laedt zum Verklicken ein, und wer sich vertut, schickt
+     zweimal dasselbe.
+
+     Was hier bewusst NICHT behauptet wird: dass ein Teil "abgeschickt" sei.
+     Ob im Formular wirklich auf ABSENDEN geklickt wurde, kann Fiona nicht
+     wissen — sie darf in die fremde Seite nicht hineinsehen. Also steht dort
+     "Formular war offen", nicht "erledigt".
+  */
+  function absendenSchritte(portionen, kasten) {
+    const anzahl = portionen.length;
+    let offen = 1;      // Teil 1 wurde beim Speichern schon geoeffnet
+
+    const h = document.createElement("h2");
+    kasten.appendChild(h);
+
+    const text = document.createElement("p");
+    text.className = "kasten-wichtig";
+    text.textContent = ABSCHLUSS.schritteText;
+    kasten.appendChild(text);
+
+    const liste = document.createElement("ol");
+    liste.className = "schrittliste";
+    liste.setAttribute("aria-live", "polite");
+    kasten.appendChild(liste);
+
+    const knopf = document.createElement("button");
+    knopf.type = "button";
+    knopf.className = "knopf";
+    kasten.appendChild(knopf);
+
+    const nummernHinweis = document.createElement("p");
+    nummernHinweis.className = "hinweiszeile";
+    nummernHinweis.textContent = (ABSCHLUSS.schritteNummer || "").replace("{nummer}", gespraechsNummer());
+    kasten.appendChild(nummernHinweis);
+
+    const leerHinweis = document.createElement("p");
+    leerHinweis.className = "hinweiszeile";
+    leerHinweis.textContent = ABSCHLUSS.formularLeerHinweisSchritte;
+    kasten.appendChild(leerHinweis);
+
+    function zeichnen() {
+      liste.innerHTML = "";
+      portionen.forEach((p, i) => {
+        const li = document.createElement("li");
+        if (i < offen) {
+          li.textContent = "Teil " + (i + 1) + " von " + anzahl + " — Formular war offen. Dort auf ABSENDEN geklickt?";
+          li.className = "schritt-offen";
+        } else if (i === offen) {
+          li.textContent = "Teil " + (i + 1) + " von " + anzahl + " — jetzt dran";
+          li.className = "schritt-dran";
+        } else {
+          li.textContent = "Teil " + (i + 1) + " von " + anzahl;
+        }
+        liste.appendChild(li);
+      });
+
+      if (offen >= anzahl) {
+        h.textContent = "Das waren alle Teile";
+        text.textContent = ABSCHLUSS.schritteFertig;
+        knopf.hidden = true;
+        leerHinweis.hidden = true;
+        return;
+      }
+
+      h.textContent = "Noch " + (anzahl - offen) + " von " + anzahl + " Teilen";
+      knopf.hidden = false;
+      knopf.textContent = "Teil " + (offen + 1) + " von " + anzahl + " abschicken";
+    }
+
+    knopf.addEventListener("click", () => {
+      window.open(portionen[offen].adresse, "_blank", "noopener");
+      offen++;
+      zeichnen();
+    });
+
+    zeichnen();
+  }
+
   async function speichern() {
-    // Schmuckfassung fuer Download und Zwischenablage, knappe fuers Formular.
+    // Schmuckfassung fuer den Download, knappe fuers Formular.
     const text = textAusFeldern(true);
     const knapp = textAusFeldern(false);
 
     const testbetrieb = !KONFIG.formularUrl;
-    const felder = KONFIG.formularFelder || [];
-    const feldGrenze = KONFIG.feldGrenze || 4000;
-    const gesamtGrenze = felder.length * feldGrenze;
+    const portionen = testbetrieb ? null : portionenBilden(knapp);
+    const hoechstens = KONFIG.maxPortionen || 5;
 
     /*
-       Sicherheitsnetz. Passt der Text auch aufgeteilt nicht mehr ins
-       Formular, wird NICHT gespeichert. Sonst schneidet Microsoft still bei
-       der Feldgrenze ab und der Schluss der Antwort geht verloren, ohne dass
-       es jemand merkt. Lieber einmal kuerzen lassen als still verlieren.
-
-       Gezaehlt werden die tatsaechlichen Teile, nicht nur die Zeichen:
-       Getrennt wird an Absatzgrenzen, deshalb bleiben Teile oft unter der
-       Feldgrenze — aus knapp 12.000 Zeichen koennen so vier Teile werden,
-       und das vierte Feld gibt es im Formular nicht.
+       Sicherheitsnetz. Laesst sich der Text gar nicht oder nur in unzumutbar
+       viele Absendungen zerlegen, wird NICHT gespeichert, sondern gekuerzt.
+       Abgeschnitten wird nie von allein — was jemand geschrieben hat, soll
+       vollstaendig ankommen oder gar nicht.
     */
-    const probeTeile = testbetrieb ? [] : textAufteilen(knapp, feldGrenze);
-    if (!testbetrieb && felder.length && probeTeile.length > felder.length) {
-      zuLangMelden(knapp.length, gesamtGrenze);
+    if (!testbetrieb && (!portionen || portionen.length > hoechstens)) {
+      zuLangMelden(knapp.length, portionen ? portionen.length : 0, hoechstens);
       return;
     }
 
     tonAus();
     zustand.fertig = true;
-
-    const teile = probeTeile;
-
     eingabeLeeren();
 
-    const vorausgefuellt = testbetrieb ? null : formularAdresse(teile);
-
     /*
-       Das Formular geht NUR auf, wenn der Text auch wirklich drinsteht.
-
-       Frueher ging es immer auf — auch leer, wenn der Text nicht in die
-       Adresse passte. Das war ein Fehlgriff: Der Teilnehmer landet dann vor
-       einem leeren Formular und haelt es fuer kaputt. Fionas Anleitung steht
-       im anderen Tab, und dorthin schaut niemand mehr.
-       [Quelle: Rueckmeldung des Nutzers 2026-09-08]
-
-       Passt der Text nicht, bleibt der Teilnehmer also hier, bekommt die
-       Teile mit Kopieren-Knopf und oeffnet das Formular selbst, wenn er so
-       weit ist. Der Klick auf diesen Knopf gilt dem Browser als Erlaubnis —
-       das Fenster wird also nicht als ungebeten blockiert.
+       Die erste Absendung MUSS hier aufgehen, direkt im Klick — vor jedem
+       await. Danach gilt der Klick als abgehandelt und der Browser blockiert
+       das Fenster als ungebeten.
     */
-    if (!testbetrieb && vorausgefuellt) {
-      window.open(vorausgefuellt, "_blank", "noopener");
-    }
-
-    /*
-       Auch bei vorausgefuelltem Text in die Zwischenablage legen — falls das
-       Formular ihn wider Erwarten nicht uebernimmt.
-
-       Kopiert wird der ERSTE TEIL in der knappen Fassung, nicht die
-       geschmueckte: Nur die knappe passt in ein Formularfeld. Die geschmueckte
-       ist laenger und wuerde beim Einfuegen still abgeschnitten.
-    */
-    let kopiert = false;
-    if (!testbetrieb && teile.length) kopiert = await inZwischenablage(teile[0]);
+    if (!testbetrieb) window.open(portionen[0].adresse, "_blank", "noopener");
 
     beitragFiona(ABSCHLUSS.nachDemSpeichern);
 
@@ -1609,7 +1757,11 @@
       p.appendChild(stark);
       kasten.appendChild(p);
 
-    } else if (vorausgefuellt) {
+    } else if (portionen.length > 1) {
+      absendenSchritte(portionen, kasten);
+
+    } else {
+      const vorausgefuellt = portionen[0].adresse;
       const h = document.createElement("h2");
       h.textContent = "Nur noch ein Klick";
       kasten.appendChild(h);
@@ -1634,82 +1786,6 @@
       });
       kasten.appendChild(nochmalK);
 
-    } else {
-      const mehrteilig = teile.length > 1;
-
-      const h = document.createElement("h2");
-      h.textContent = mehrteilig ? "Deine Antwort kommt in mehreren Teilen" : "Noch ein paar Handgriffe";
-      kasten.appendChild(h);
-
-      if (mehrteilig) {
-        const p = document.createElement("p");
-        p.className = "kasten-wichtig";
-        p.textContent = ABSCHLUSS.formularTeileEinleitung;
-        kasten.appendChild(p);
-      }
-
-      const schritte = document.createElement("ol");
-      schritte.className = "schrittliste";
-      (mehrteilig ? ABSCHLUSS.formularTeileSchritte : ABSCHLUSS.formularSchritte).forEach((satz) => {
-        const li = document.createElement("li");
-        li.textContent = satz;
-        schritte.appendChild(li);
-      });
-      kasten.appendChild(schritte);
-
-      /*
-         Fuer jeden Teil ein eigener Kasten mit Kopieren-Knopf. Auch bei nur
-         einem Teil: Der Knopf ersetzt die Tastenkombination, die viele nicht
-         kennen. Der Text steht sichtbar daneben, damit klar ist, was kopiert
-         wird — und damit es auch dann geht, wenn die Zwischenablage klemmt.
-      */
-      teile.forEach((teil, i) => {
-        const abschnitt = document.createElement("div");
-        abschnitt.className = "teil-kasten";
-
-        const ueber = document.createElement("h3");
-        ueber.textContent = mehrteilig
-          ? "Teil " + (i + 1) + " von " + teile.length + " — in das " + (i + 1) + ". Feld des Formulars"
-          : "Dein Text";
-        abschnitt.appendChild(ueber);
-
-        const feld = document.createElement("textarea");
-        feld.className = "zusammenfassung";
-        feld.readOnly = true;
-        feld.value = teil;
-        feld.id = "teil_" + (i + 1);
-        feld.setAttribute("aria-label", mehrteilig ? "Teil " + (i + 1) + " zum Kopieren" : "Dein Text zum Kopieren");
-        abschnitt.appendChild(feld);
-
-        const knopf = document.createElement("button");
-        knopf.type = "button";
-        knopf.className = "knopf";
-        knopf.textContent = mehrteilig ? "Teil " + (i + 1) + " kopieren" : "Text kopieren";
-        knopf.addEventListener("click", async () => {
-          const ok = await inZwischenablage(teil);
-          if (ok) {
-            knopf.textContent = mehrteilig ? "Teil " + (i + 1) + " kopiert ✓" : "Kopiert ✓";
-          } else {
-            // Zwischenablage gesperrt: dann wenigstens alles markieren, damit
-            // nur noch die rechte Maustaste und „Kopieren" fehlen.
-            feld.focus();
-            feld.select();
-            knopf.textContent = "Text ist markiert — rechte Maustaste, „Kopieren“";
-          }
-        });
-        abschnitt.appendChild(knopf);
-
-        kasten.appendChild(abschnitt);
-      });
-
-      const formularK = document.createElement("button");
-      formularK.type = "button";
-      formularK.className = "knopf";
-      formularK.textContent = ABSCHLUSS.formularOeffnen;
-      formularK.addEventListener("click", () => {
-        window.open(KONFIG.formularUrl, "_blank", "noopener");
-      });
-      kasten.appendChild(formularK);
     }
 
     const zeile = document.createElement("div");
