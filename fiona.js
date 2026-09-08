@@ -648,18 +648,67 @@
   /* Antworten prüfen                                                  */
   /* ================================================================ */
   /*
-     1. Gemeindenamen aus dem Landkreis werden durch [Ort] ersetzt.
-     2. Angaben nach Artikel 9 DSGVO werden durch [entfernt] ersetzt.
+     1. Vornamen aus der Liste werden durch [Name] ersetzt — auch mitten im
+        Satz, samt direkt folgendem Nachnamen.
+     2. Namen hinter Wendungen wie "ich bin ..." werden ersetzt. Das fängt
+        auch Namen, die nicht auf der Liste stehen.
+     3. Gemeindenamen aus dem Landkreis werden durch [Ort] ersetzt.
+     4. Angaben nach Artikel 9 DSGVO werden durch [entfernt] ersetzt.
 
-     Personennamen werden BEWUSST NICHT automatisch gesucht: Im Deutschen wird
-     jedes Hauptwort großgeschrieben, eine Erkennung läge ständig daneben.
-     Fiona bittet darum, keine Namen zu nennen — und am Ende prüft der
-     Teilnehmer die Zusammenfassung selbst.
+     Und danach prüft der Teilnehmer die Zusammenfassung selbst. Das bleibt
+     der wichtigste Filter — die Automatik nimmt ihm nur die Masse ab.
   */
+
+  /*
+     Ein einziges Suchmuster aus allen Vornamen, einmal gebaut.
+
+     Statt \b werden Blicke nach links und rechts benutzt: \b in JavaScript
+     kennt nur englische Buchstaben, an Umlauten läge es daneben. So bleibt
+     "Jürgens" (Nachname) unberührt und "Uwe" in "Uwes" ebenfalls.
+
+     Grossschreibung wird verlangt: "max. 3 Fahrzeuge" ist kein Maximilian.
+  */
+  const VORNAMEN_MUSTER = (typeof VORNAMEN !== "undefined" && VORNAMEN.length)
+    ? new RegExp(
+        "(?<!\\p{L})(?:" + VORNAMEN.slice().sort((a, b) => b.length - a.length).join("|") + ")"
+        + "(?!\\p{L})"
+        + "(\\s+\\p{Lu}[\\p{L}\\-‐]{1,24})?",
+        "gu")
+    : null;
 
   function pruefen(text) {
     let sauber = text;
     const gefunden = [];
+
+    /*
+       Vornamen mitten im Satz.
+
+       Steht direkt hinter dem Vornamen ein weiteres grossgeschriebenes Wort,
+       ist das fast immer der Nachname ("Michael Meyer") — dann faellt es mit
+       weg. Ausgenommen sind Dienstgrade und Alltagswoerter aus KEINE_NAMEN,
+       damit aus "Udo Ortsbrandmeister" nicht die Funktion verschwindet.
+    */
+    if (VORNAMEN_MUSTER) {
+      const vorher = sauber;
+      sauber = sauber.replace(VORNAMEN_MUSTER, (treffer, folgewort) => {
+        if (!folgewort) return "[Name]";
+        const blank = folgewort.trim().toLowerCase();
+        return KEINE_NAMEN.includes(blank) ? "[Name]" + folgewort : "[Name]";
+      });
+      if (sauber !== vorher) gefunden.push("name");
+    }
+
+    /*
+       Nachnamen ohne Vornamen davor: "Frau Schmidt", "Herr Meyer".
+       Was auf eine Anrede folgt, ist ein Name — ausser es ist ein Dienstgrad
+       ("Herr Kreisbrandmeister"). Die Anrede selbst bleibt stehen, damit der
+       Satz lesbar bleibt.
+    */
+    const ANREDE = /(?<!\p{L})(Herr|Herrn|Frau|Kamerad|Kameradin|Kollege|Kollegin)(\s+)(\p{Lu}[\p{L}\-‐]{1,24})/gu;
+    const vorAnrede = sauber;
+    sauber = sauber.replace(ANREDE, (ganz, anrede, luecke, wort) =>
+      KEINE_NAMEN.includes(wort.toLowerCase()) ? ganz : anrede + luecke + "[Name]");
+    if (sauber !== vorAnrede && !gefunden.includes("name")) gefunden.push("name");
 
     /*
        Namen: nur nach eindeutigen Wendungen wie "ich bin ...".
@@ -1459,8 +1508,14 @@
        Formular, wird NICHT gespeichert. Sonst schneidet Microsoft still bei
        der Feldgrenze ab und der Schluss der Antwort geht verloren, ohne dass
        es jemand merkt. Lieber einmal kuerzen lassen als still verlieren.
+
+       Gezaehlt werden die tatsaechlichen Teile, nicht nur die Zeichen:
+       Getrennt wird an Absatzgrenzen, deshalb bleiben Teile oft unter der
+       Feldgrenze — aus knapp 12.000 Zeichen koennen so vier Teile werden,
+       und das vierte Feld gibt es im Formular nicht.
     */
-    if (!testbetrieb && gesamtGrenze && knapp.length > gesamtGrenze) {
+    const probeTeile = testbetrieb ? [] : textAufteilen(knapp, feldGrenze);
+    if (!testbetrieb && felder.length && probeTeile.length > felder.length) {
       zuLangMelden(knapp.length, gesamtGrenze);
       return;
     }
@@ -1468,24 +1523,28 @@
     tonAus();
     zustand.fertig = true;
 
-    // Auf die Formularfelder verteilen (meist nur ein Teil).
-    const teile = testbetrieb ? [] : textAufteilen(knapp, feldGrenze);
+    const teile = probeTeile;
 
     eingabeLeeren();
 
     const vorausgefuellt = testbetrieb ? null : formularAdresse(teile);
 
     /*
-       Das Fenster MUSS hier aufgehen, direkt im Klick — vor jedem await.
-       Danach gilt der Klick als abgehandelt und der Browser blockiert das
-       Oeffnen als ungebetenes Fenster.
+       Das Formular geht NUR auf, wenn der Text auch wirklich drinsteht.
 
-       Es geht in BEIDEN Faellen auf: mit vorausgefuelltem Text, wenn er in
-       die Adresse passt, sonst leer. So ist es immer nur ein Klick, und im
-       zweiten Fall bleibt genau ein Handgriff: einfuegen.
+       Frueher ging es immer auf — auch leer, wenn der Text nicht in die
+       Adresse passte. Das war ein Fehlgriff: Der Teilnehmer landet dann vor
+       einem leeren Formular und haelt es fuer kaputt. Fionas Anleitung steht
+       im anderen Tab, und dorthin schaut niemand mehr.
+       [Quelle: Rueckmeldung des Nutzers 2026-09-08]
+
+       Passt der Text nicht, bleibt der Teilnehmer also hier, bekommt die
+       Teile mit Kopieren-Knopf und oeffnet das Formular selbst, wenn er so
+       weit ist. Der Klick auf diesen Knopf gilt dem Browser als Erlaubnis —
+       das Fenster wird also nicht als ungebeten blockiert.
     */
-    if (!testbetrieb) {
-      window.open(vorausgefuellt || KONFIG.formularUrl, "_blank", "noopener");
+    if (!testbetrieb && vorausgefuellt) {
+      window.open(vorausgefuellt, "_blank", "noopener");
     }
 
     /*
@@ -1521,6 +1580,12 @@
       p.textContent = ABSCHLUSS.formularFertig;
       kasten.appendChild(p);
 
+      // Absicherung gegen den Entwurf, den Forms im Browser zwischenspeichert.
+      const notfall = document.createElement("p");
+      notfall.className = "hinweiszeile";
+      notfall.textContent = ABSCHLUSS.formularLeerHinweis;
+      kasten.appendChild(notfall);
+
       const nochmalK = document.createElement("button");
       nochmalK.type = "button";
       nochmalK.className = "knopf";
@@ -1534,7 +1599,7 @@
       const mehrteilig = teile.length > 1;
 
       const h = document.createElement("h2");
-      h.textContent = mehrteilig ? "Deine Antwort kommt in mehreren Teilen" : "Noch zwei Handgriffe";
+      h.textContent = mehrteilig ? "Deine Antwort kommt in mehreren Teilen" : "Noch ein paar Handgriffe";
       kasten.appendChild(h);
 
       if (mehrteilig) {

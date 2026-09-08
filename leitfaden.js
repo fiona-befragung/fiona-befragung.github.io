@@ -311,6 +311,89 @@ const KEINE_NAMEN = [
 ];
 
 /*
+   VORNAMEN
+
+   Warum diese Liste noetig wurde: Die Wendungen oben fangen nur "ich bin
+   Michael" ab. Im Gespraech fallen Namen aber mitten im Satz —
+   "weil Michael, Udo und Stefan das nicht alles schaffen koennen".
+   Die blieben bisher stehen. [Quelle: Gespraech 2026-09-08]
+
+   Warum eine Liste und keine Regel: Im Deutschen wird jedes Hauptwort
+   grossgeschrieben. "Alles Grossgeschriebene ist ein Name" wuerde staendig
+   danebenliegen. Gegen eine feste Liste bekannter Vornamen gepruefte Woerter
+   dagegen sind zuverlaessig.
+
+   Bewusst NICHT aufgenommen, weil sie haeufiger als gewoehnliches Wort
+   vorkommen als als Name: Ernst, August, Mai, Heide, Wolf, Falk, Urban,
+   Hagen, Reiner. Lieber eine Luecke als bei jedem zweiten Satz [Name].
+
+   Umgekehrt gilt: Ein Fehlgriff faellt dem Teilnehmer in der Zusammenfassung
+   auf und ist mit einem Klick zu berichtigen. Ein uebersehener Name faellt
+   niemandem auf und ist dann draussen. Im Zweifel also lieber ersetzen.
+*/
+const VORNAMEN = [
+  // Maennlich
+  "Achim", "Adolf", "Albert", "Alexander", "Alfons", "Alfred", "Alois", "Aloys",
+  "Andre", "André", "Andreas", "Ansgar", "Anton", "Armin", "Arnd", "Arne",
+  "Arnold", "Artur", "Arthur", "Axel", "Bastian", "Ben", "Benedikt", "Benjamin",
+  "Bernd", "Bernhard", "Bodo", "Boris", "Burkhard", "Carsten", "Christian",
+  "Christoph", "Clemens", "Claus", "Daniel", "David", "Dennis", "Denis",
+  "Detlef", "Dieter", "Dietmar", "Dirk", "Dominik", "Eckhard", "Edgar",
+  "Eduard", "Edwin", "Egon", "Eilert", "Elmar", "Emil", "Enno", "Erhard",
+  "Eric", "Erik", "Erwin", "Eugen", "Ewald", "Fabian", "Felix", "Ferdinand",
+  "Florian", "Focke", "Frank", "Franz", "Fred", "Friedrich", "Fritz",
+  "Georg", "Gerd", "Gerhard", "Gerrit", "Gert", "Gregor", "Gustav", "Günter",
+  "Günther", "Guenter", "Guenther", "Hannes", "Hans", "Harald", "Harm",
+  "Hartmut", "Hartwig", "Hayo", "Heiko", "Heiner", "Heinrich", "Heinz",
+  "Helge", "Helmut", "Hendrik", "Henning", "Henrik", "Herbert", "Heribert",
+  "Hermann", "Hilmar", "Hinrich", "Holger", "Horst", "Hubert", "Hubertus",
+  "Immanuel", "Ingo", "Jakob", "Jacob", "Jan", "Janik", "Jannik", "Jens",
+  "Joachim", "Jochen", "Joel", "Johannes", "Jonas", "Jonathan", "Josef",
+  "Joseph", "Julian", "Julius", "Jürgen", "Juergen", "Jörg", "Joerg", "Jörn",
+  "Joern", "Justin", "Kai", "Karl", "Karsten", "Kay", "Kevin", "Kilian",
+  "Klaus", "Knut", "Konrad", "Kurt", "Lars", "Lennart", "Lennard", "Leo",
+  "Levin", "Linus", "Lorenz", "Luca", "Lucas", "Ludger", "Ludwig", "Lukas",
+  "Lutz", "Malte", "Manfred", "Manuel", "Marc", "Marco", "Marcus", "Mario",
+  "Marius", "Mark", "Markus", "Marten", "Martin", "Marvin", "Mathias",
+  "Matthias", "Max", "Maximilian", "Meik", "Meiko", "Meinolf", "Menno",
+  "Merlin", "Michael", "Mike", "Mirko", "Moritz", "Nick", "Nico", "Nicolai",
+  "Niklas", "Nikolaus", "Nils", "Norbert", "Olaf", "Olav", "Ole", "Oliver",
+  "Onno", "Oskar", "Otto", "Pascal", "Patrick", "Paul", "Peter", "Philipp",
+  "Phillip", "Rafael", "Rainer", "Ralf", "Ralph", "Raphael", "Reinhard",
+  "Reinhold", "Rene", "René", "Richard", "Robert", "Rolf", "Roman", "Ronald",
+  "Ronny", "Rudi", "Rudolf", "Rüdiger", "Ruediger", "Sascha", "Sebastian",
+  "Siegfried", "Sigmar", "Silvio", "Simon", "Sönke", "Soenke", "Stefan",
+  "Steffen", "Stephan", "Sven", "Tammo", "Theo", "Theodor", "Thies", "Thomas",
+  "Thorsten", "Till", "Tim", "Timm", "Timo", "Tino", "Tobias", "Tom", "Torben",
+  "Torsten", "Udo", "Ulf", "Uli", "Ulrich", "Uwe", "Valentin", "Victor",
+  "Viktor", "Vincent", "Vitus", "Volker", "Waldemar", "Walter", "Wendelin",
+  "Werner", "Wiebke", "Wilfried", "Wilhelm", "Willi", "Willy", "Winfried",
+  "Wolfgang", "Wolfram", "Wulf", "Yannick", "Yannik",
+  // Weiblich
+  "Andrea", "Angelika", "Anja", "Anke", "Anna", "Anne", "Annette", "Antje",
+  "Astrid", "Barbara", "Beate", "Bettina", "Birgit", "Brigitte", "Britta",
+  "Carmen", "Carolin", "Caroline", "Christa", "Christel", "Christiane",
+  "Christina", "Christine", "Claudia", "Cordula", "Dagmar", "Daniela",
+  "Diana", "Doris", "Dorothea", "Edith", "Elfriede", "Elisabeth", "Elke",
+  "Ellen", "Emma", "Erika", "Eva", "Fenna", "Franziska", "Frauke", "Gabriele",
+  "Gerda", "Gertrud", "Gisela", "Hanna", "Hannah", "Hannelore", "Hedwig",
+  "Heidi", "Heike", "Helga", "Henriette", "Hilde", "Hildegard", "Hilke",
+  "Ilse", "Ines", "Inge", "Ingeborg", "Ingrid", "Irene", "Irina", "Iris",
+  "Jana", "Janina", "Jasmin", "Jennifer", "Jessica", "Johanna", "Julia",
+  "Jutta", "Karin", "Karina", "Katharina", "Kathrin", "Katja", "Katrin",
+  "Kerstin", "Kirsten", "Klara", "Kristin", "Lara", "Laura", "Lea", "Lena",
+  "Lina", "Lisa", "Luisa", "Luise", "Magdalena", "Maike", "Manuela",
+  "Mareike", "Margarete", "Margret", "Maria", "Marie", "Marina", "Marion",
+  "Marlene", "Marta", "Martina", "Mechthild", "Melanie", "Michaela", "Monika",
+  "Nadine", "Nicole", "Nina", "Nora", "Olga", "Petra", "Pia", "Rebecca",
+  "Regina", "Renate", "Rita", "Rosemarie", "Ruth", "Sabine", "Sabrina",
+  "Sandra", "Sara", "Sarah", "Silke", "Silvia", "Sylvia", "Simone", "Sonja",
+  "Sophie", "Sofia", "Stefanie", "Stephanie", "Susanne", "Svenja", "Tanja",
+  "Tatjana", "Thea", "Theresa", "Therese", "Ulrike", "Ursula", "Ute",
+  "Vera", "Verena", "Veronika", "Waltraud", "Yvonne",
+];
+
+/*
    FACHBEGRIFFE GERADEZIEHEN
 
    Die Spracherkennung kennt kein Feuerwehrdeutsch. Aus „Kreisbrandmeister"
@@ -585,31 +668,40 @@ const ABSCHLUSS = {
     "Du kannst den Text direkt bearbeiten. Wenn er passt, klick auf Speichern — erst dann wird er anonym abgelegt. Wenn Du das nicht möchtest, schließ einfach das Fenster: Dann wird nichts gespeichert und nichts weitergegeben.",
   ],
   nachDemSpeichern: [
-    "Gespeichert. Danke, dass Du Dir die Zeit genommen hast.",
-    "Du kannst Deinen Text jetzt als Datei herunterladen und bei Dir aufbewahren. Bitte mach das gleich hier: Sobald Du die Seite schließt, kann ich Dir den Text nicht mehr zuordnen — dafür ist das Verfahren anonym.",
+    "Fast geschafft — danke, dass Du Dir die Zeit genommen hast.",
+    "Ein Schritt fehlt noch: Deine Antwort ist erst gespeichert, wenn Du im Formular unten auf ABSENDEN geklickt hast. Vorher ist nichts weitergegeben worden.",
+    "Du kannst Deinen Text außerdem als Datei herunterladen und bei Dir aufbewahren. Bitte mach das gleich hier: Sobald Du die Seite schließt, kann ich Dir den Text nicht mehr zuordnen — dafür ist das Verfahren anonym.",
     "Die Ergebnisse aus allen Gesprächen werden zusammengefasst und in einer Sitzung vorgestellt.",
   ],
-  // Anleitung für das Einfügen ins Formular.
-  formularAnleitung: "Der Text liegt jetzt in der Zwischenablage. Im Formular, das sich gleich öffnet, klickst Du mit der rechten Maustaste in das große Feld und wählst „Einfügen“. Am Handy oder Tablet: lange auf das Feld tippen, dann „Einfügen“. Danach auf Absenden.",
   // Wenn die Zusammenfassung direkt ins Formular geschrieben werden konnte:
   formularFertig: "Das Formular ist offen, und Deine Zusammenfassung steht schon drin. Bitte dort nur noch nach unten scrollen und auf ABSENDEN klicken — erst dann ist Deine Antwort gespeichert.",
+  /*
+     Absicherung: Microsoft Forms merkt sich im Browser einen Entwurf und
+     zeigt den notfalls STATT des vorausgefuellten Textes. Das passiert, wenn
+     das Formular in derselben Sitzung schon einmal offen war. Von hier aus
+     ist dagegen nichts zu machen — Fiona darf in eine fremde Seite nicht
+     hineinschreiben. Also sagen wir, was zu tun ist.
+     [Quelle: nachgewiesen am 2026-09-08]
+  */
+  formularLeerHinweis: "Steht im Formular nichts oder etwas Altes? Dann schließ den Formular-Tab ganz, komm hierher zurück und klick unten auf „Formular noch einmal öffnen“. Dein Text ist hier weiter sicher.",
   formularOeffnen: "Formular öffnen",
   // Wenn der Text zu lang fuer die Adresse war: die zwei Handgriffe.
   formularSchritte: [
-    "Das Formular ist schon offen — wechsle in den anderen Tab.",
-    "Dein Text ist bereits kopiert. Klick mit der rechten Maustaste in das große Feld und wähle „Einfügen“. Am Handy oder Tablet: lange auf das Feld tippen, dann „Einfügen“. Wer die Tastatur mag: Strg und V geht auch.",
-    "Dann auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
+    "Klick unten auf „Text kopieren“. Dein Text liegt dann bereit.",
+    "Dann auf „Formular öffnen“. Dort mit der rechten Maustaste in das große Feld klicken und „Einfügen“ wählen. Am Handy oder Tablet: lange auf das Feld tippen, dann „Einfügen“. Wer die Tastatur mag: Strg und V geht auch.",
+    "Zum Schluss im Formular auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
   ],
   formularNochmal: "Formular noch einmal öffnen",
   /*
      Wenn der Text auf mehrere Formularfelder verteilt werden musste UND die
      Adresse zu lang war. Dann muss jeder Teil einzeln eingefuegt werden.
   */
-  formularTeileEinleitung: "Deine Antwort ist ausführlich geworden — schön. Sie passt deshalb nicht in ein einziges Formularfeld, sondern wird auf mehrere verteilt. Unten steht jeder Teil mit einem eigenen Knopf zum Kopieren.",
+  formularTeileEinleitung: "Deine Antwort ist ausführlich geworden — schön. Sie passt deshalb nicht in ein einziges Formularfeld, sondern wird auf mehrere verteilt. Unten steht jeder Teil mit einem eigenen Knopf zum Kopieren. Das Formular öffnest Du gleich selbst — lass dieses Fenster dabei offen, Du brauchst es noch.",
   formularTeileSchritte: [
-    "Das Formular ist schon offen — wechsle in den anderen Tab.",
-    "Kopiere hier Teil 1, füge ihn im Formular in das erste Feld ein (rechte Maustaste → „Einfügen“), und so weiter für jeden weiteren Teil.",
-    "Dann auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
+    "Klick beim ersten Kasten auf „Teil 1 kopieren“.",
+    "Dann ganz unten auf „Formular öffnen“. Im Formular mit der rechten Maustaste in das erste Feld klicken und „Einfügen“ wählen. Am Handy: lange auf das Feld tippen.",
+    "Für jeden weiteren Teil: zurück in dieses Fenster, „Teil 2 kopieren“, im Formular in das zweite Feld einfügen — und so weiter.",
+    "Zum Schluss im Formular auf ABSENDEN klicken. Erst damit ist Deine Antwort gespeichert.",
   ],
   // Sicherheitsnetz: Der Text passt auch aufgeteilt nicht mehr ins Formular.
   zuLangUeberschrift: "Der Text ist noch zu lang",
