@@ -504,6 +504,16 @@
     };
   }
 
+  /*
+     Beschriftung des Mikrofon-Knopfes der aktuellen Frage.
+
+     Das Mikrofon springt erst NACH dem Aufbau der Frage an. Ohne diesen
+     Rueckruf bliebe der Knopf auf "Mikrofon einschalten" stehen, obwohl es
+     laengst laeuft — und der Platzhalter im Feld ebenso daneben.
+     [Quelle: Rueckmeldung des Nutzers 2026-09-08]
+  */
+  let mikroKnopfAktualisieren = null;
+
   /* Ziel wechseln — und dafuer sorgen, dass wirklich zugehoert wird. */
   async function zuhoerenStarten(feld, anzeige) {
     if (!spracheMoeglich()) return;
@@ -523,6 +533,7 @@
     erkennungAnwerfen();
     waechterAn();
     anzeigeSetzen(erkennungLaeuft ? "Ich höre zu …" : "Mikrofon wird geöffnet …", erkennungLaeuft);
+    if (mikroKnopfAktualisieren) mikroKnopfAktualisieren();
   }
 
   /* Nur das Ziel abhaengen. Erkennung und Mikrofon-Strom laufen weiter, damit
@@ -805,7 +816,11 @@
   /* Eingabefelder                                                     */
   /* ================================================================ */
 
-  function eingabeLeeren() { eingabe.innerHTML = ""; }
+  function eingabeLeeren() {
+    // Der Knopf der alten Frage ist weg — sein Rueckruf darf nicht bleiben.
+    mikroKnopfAktualisieren = null;
+    eingabe.innerHTML = "";
+  }
 
   function zurueckKnopf() {
     if (schritte.length < 2) return null;
@@ -824,9 +839,21 @@
     feld.className = "eingabe-feld";
     feld.id = "antwortfeld";
     feld.setAttribute("aria-label", frage.frage);
-    feld.placeholder = zustand.modus === "sprechen"
-      ? "Sprich einfach los — was Du sagst, erscheint hier."
-      : "Deine Antwort …";
+    /*
+       Der Platzhalter richtet sich danach, ob das Mikrofon WIRKLICH laeuft.
+
+       Vorher stand im Sprechen-Modus immer "Sprich einfach los" — auch wenn
+       das Mikrofon aus war und der Knopf darunter "Mikrofon einschalten"
+       anbot. Die Seite forderte also zum Sprechen auf, waehrend sie gar nicht
+       zuhoerte. [Quelle: Rueckmeldung des Nutzers 2026-09-08]
+    */
+    const platzhalterSetzen = () => {
+      if (zustand.modus !== "sprechen") { feld.placeholder = "Deine Antwort …"; return; }
+      feld.placeholder = zustand.hoertZu
+        ? "Sprich einfach los — was Du sagst, erscheint hier."
+        : "Tippe Deine Antwort — oder schalte unten das Mikrofon ein.";
+    };
+    platzhalterSetzen();
 
     const anzeige = document.createElement("p");
     anzeige.className = "hoeranzeige";
@@ -868,17 +895,29 @@
       mikroK.type = "button";
       mikroK.className = "knopf knopf-still";
 
-      // Zeigt den ZUSTAND, nicht die Aktion — genau wie der Ton-Knopf oben.
+      /*
+         Beschriftung und Zeichen sagen BEIDE, was ein Klick bewirkt.
+
+         Vorher zeigte das Zeichen den Zustand und der Text die Aktion — die
+         beiden zeigten also in verschiedene Richtungen ("stumm" neben
+         "einschalten"). Dazu war 🔇 das Zeichen fuer einen stummen
+         LAUTSPRECHER, nicht fuer ein Mikrofon.
+         [Quelle: Rueckmeldung des Nutzers 2026-09-08]
+
+         Den Zustand tragen jetzt der eingefaerbte Knopf, aria-pressed und die
+         Hoeranzeige darueber — nicht die Farbe allein.
+      */
       const mikroBeschriften = () => {
         mikroK.setAttribute("aria-pressed", String(zustand.hoertZu));
         mikroK.classList.toggle("knopf-aktiv", zustand.hoertZu);
-        // Ein Verb macht es eindeutig: "Mikrofon aus" kann man als Zustand
-        // ODER als Aufforderung lesen — "Mikrofon ausschalten" nicht.
         mikroK.innerHTML = zustand.hoertZu
-          ? '<span aria-hidden="true">🎙</span> Mikrofon ausschalten'
-          : '<span aria-hidden="true">🔇</span> Mikrofon einschalten';
+          ? '<span aria-hidden="true">⏹</span> Mikrofon ausschalten'
+          : '<span aria-hidden="true">🎤</span> Mikrofon einschalten';
+        platzhalterSetzen();
       };
       mikroBeschriften();
+      // Damit der Knopf auch stimmt, wenn das Mikrofon erst gleich anspringt.
+      mikroKnopfAktualisieren = mikroBeschriften;
 
       mikroK.addEventListener("click", async () => {
         if (zustand.hoertZu) {

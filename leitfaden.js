@@ -391,6 +391,68 @@ const VORNAMEN = [
   "Sophie", "Sofia", "Stefanie", "Stephanie", "Susanne", "Svenja", "Tanja",
   "Tatjana", "Thea", "Theresa", "Therese", "Ulrike", "Ursula", "Ute",
   "Vera", "Verena", "Veronika", "Waltraud", "Yvonne",
+
+  /* --- Nachtrag 2026-09-08: es rutschten noch Namen durch ------------- */
+
+  // Rufformen und Spitznamen. Bei der Feuerwehr faellt selten der
+  // Taufname — es heisst Kalle, Jupp oder Micha.
+  "Basti", "Bernie", "Charly", "Didi", "Ecki", "Ede", "Ferdi", "Fiete",
+  "Gerry", "Hardy", "Hennes", "Hotte", "Jockel", "Jupp", "Kalle", "Kalli",
+  "Kuno", "Manni", "Micha", "Olli", "Otti", "Pit", "Poldi", "Schorsch",
+  "Sepp", "Steffi", "Tommy", "Ulli", "Gabi", "Rosi", "Rike", "Hanni",
+  "Elly", "Jenny", "Nelly", "Ulla", "Trude", "Lotte", "Lore",
+
+  // Weitere deutsche Vornamen, die in der ersten Fassung fehlten
+  "Adalbert", "Albrecht", "Alwin", "Arno", "Balthasar", "Benno",
+  "Berthold", "Bruno", "Carl", "Conrad", "Cord", "Dietrich", "Eberhard",
+  "Eckart", "Egbert", "Ekkehard", "Engelbert", "Erich", "Folkert", "Frerich",
+  "Friedhelm", "Gebhard", "Gerald", "Gerold", "Gottfried", "Gotthard",
+  "Gunnar", "Gunter", "Hanno", "Hasso", "Hellmut", "Helmuth", "Hilbert",
+  "Hinnerk", "Ignaz", "Ilja", "Iven", "Jobst", "Johann", "Jost", "Justus",
+  "Karlheinz", "Klemens", "Konstantin", "Leonhard", "Lothar", "Magnus",
+  "Marlon", "Meinhard", "Meike", "Odin", "Otmar", "Ottmar", "Peer",
+  "Raimund", "Reimer", "Rickmer", "Roderich", "Rupert", "Ruprecht",
+  "Sieghard", "Sigbert", "Thorben", "Traugott", "Ubbo", "Volkmar", "Wieland",
+  "Adelheid", "Agathe", "Agnes", "Alma", "Almut", "Amalie", "Anneliese",
+  "Annemarie", "Annika", "Antonia", "Bärbel", "Baerbel", "Berta", "Bertha",
+  "Bianca", "Birte", "Carola", "Cornelia", "Doreen", "Eleonore", "Elsa",
+  "Else", "Emilie", "Erna", "Franka", "Frieda", "Friederike", "Gerlinde",
+  "Gertraud", "Gudrun", "Gundula", "Hanne", "Helene", "Helma", "Herta",
+  "Hertha", "Hiltrud", "Ida", "Ilona", "Imke", "Ina", "Irmgard", "Irmtraud",
+  "Isabel", "Isabell", "Isabelle", "Jacqueline", "Josefine", "Judith",
+  "Käthe", "Kaethe", "Lieselotte", "Lydia", "Mandy", "Margarethe", "Margit",
+  "Marianne", "Marlies", "Marlis", "Martha", "Mathilde", "Minna", "Mirjam",
+  "Miriam", "Nadja", "Neele", "Nicola", "Ortrud", "Paula", "Ramona",
+  "Regine", "Roswitha", "Sigrid", "Sigrun", "Tabea", "Traute", "Uta",
+  "Waltraut", "Wilma", "Wiltrud",
+
+  // Junge Vornamen — die Nachwuchskraefte heissen anders als die Alten
+  "Amelie", "Bent", "Charlotte", "Clara", "Elias", "Ella", "Emilia", "Finn",
+  "Fynn", "Greta", "Jasper", "Jonah", "Leni", "Levi", "Liam", "Lilly",
+  "Lily", "Lio", "Lotta", "Maja", "Mats", "Matteo", "Maya", "Mia", "Mila",
+  "Nele", "Noah", "Pauline", "Romy", "Sophia", "Zoe",
+
+  // Namen nichtdeutscher Herkunft, in Niedersachsen gelaeufig
+  "Adam", "Ahmet", "Aleksej", "Alessandro", "Alexej", "Ali", "Amir", "Ana",
+  "Anastasia", "Andrej", "Andrzej", "Ante", "Antonio", "Aylin", "Ayse",
+  "Baris", "Bartosz", "Bilal", "Bojan", "Burak", "Can", "Cem", "Ceren",
+  "Damian", "Dariusz", "Dejan", "Deniz", "Dmitri", "Dragan", "Dusan", "Ece",
+  "Elena", "Elif", "Emine", "Emre", "Esra", "Fatih", "Fatma", "Francesco",
+  "Galina", "Giovanni", "Giulia", "Giuseppe", "Goran", "Grzegorz", "Halil",
+  "Hamza", "Hasan", "Hatice", "Hüseyin", "Huseyin", "Ibrahim", "Igor",
+  "Ismail", "Ivan", "Ivana", "Ivica", "Iwan", "Jacek", "Jelena", "Joanna",
+  "Josip", "Juri", "Kaan", "Kadir", "Kamil", "Karim", "Katarzyna", "Kemal",
+  "Khaled", "Krzysztof", "Larissa", "Layla", "Leyla", "Lorenzo", "Luigi",
+  "Ludmila", "Lukasz", "Marek", "Mariusz", "Marko", "Mehmet", "Mert",
+  "Michal", "Milan", "Milica", "Mirjana", "Mohamed", "Mohammed", "Murat",
+  "Natalia", "Natalja", "Nenad", "Nikola", "Nikolai", "Oksana", "Oleg",
+  "Omar", "Osman", "Paolo", "Pavel", "Pawel", "Petar", "Piotr", "Rania",
+  "Roberto", "Rosa", "Salih", "Salvatore", "Samir", "Sanja", "Sasa",
+  "Selin", "Serkan", "Sergej", "Sergey", "Sibel", "Slawomir", "Snezana",
+  "Stjepan", "Suleyman", "Süleyman", "Svetlana", "Swetlana", "Tarek",
+  "Tolga", "Tomasz", "Valentina", "Vesna", "Viktoria", "Vitali", "Vladimir",
+  "Volkan", "Wladimir", "Wojciech", "Yasin", "Yasmin", "Youssef", "Yusuf",
+  "Zeynep", "Zoran",
 ];
 
 /*
