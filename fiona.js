@@ -1557,14 +1557,19 @@
      Formular. Der Teilnehmer klickt je Portion nur noch ABSENDEN.
      [Quelle: Gespraech 2026-09-08]
 
-     Jede Portion traegt oben eine Zeile "Gespräch 4711 - Teil 2 von 3". Die
+     Jede Portion traegt oben eine Zeile "Gespräch 471123 - Teil 2 von 3". Die
      Nummer ist gewuerfelt und sagt nichts ueber die Person — sie dient allein
      dazu, die Zeilen bei der Auswertung wieder zusammenzusetzen.
+
+     Sechs Stellen statt vier: Bei vier Stellen lag die Chance, dass zwei von
+     vierzig Gespraechen dieselbe Nummer wuerfeln, bei rund acht Prozent. Mit
+     sechs Stellen ist es unter ein Promille.
+     [Quelle: Gespraech 2026-10-01]
   */
 
   function gespraechsNummer() {
     if (!zustand.nummer) {
-      zustand.nummer = String(Math.floor(1000 + Math.random() * 9000));
+      zustand.nummer = String(Math.floor(100000 + Math.random() * 900000));
     }
     return zustand.nummer;
   }
@@ -1594,7 +1599,7 @@
 
     // Beim Messen die Kopfzeile mitrechnen — sie kommt spaeter oben drauf.
     // Zweistellige Platzhalter, damit die Probe nie zu knapp ausfaellt.
-    const probeKopf = kopfzeile("8888", 9, 9);
+    const probeKopf = kopfzeile("888888", 9, 9);
 
     const passt = (stueck) => {
       const teile = textAufteilen(stueck, feldGrenze);
@@ -1633,57 +1638,105 @@
   }
 
   /*
-     Die Schritte anzeigen, wenn es mehr als eine Absendung braucht.
+     Das Formular IN der Seite zeigen — fuer eine wie fuer mehrere Absendungen.
 
-     Immer nur EIN Knopf: der fuer den Teil, der als naechstes dran ist. Eine
-     Wand aus Knoepfen laedt zum Verklicken ein, und wer sich vertut, schickt
-     zweimal dasselbe.
+     Vorher ging jeder Teil in einem eigenen Tab auf. Bei vier Teilen hiess
+     das: viermal hinueber zum Formular, viermal zurueck zu Fiona. Das war dem
+     Nutzer zu umstaendlich — zu Recht. Jetzt steht das fertig ausgefuellte
+     Formular hier in einem Rahmen, darunter der Knopf zum naechsten Teil.
+     Niemand muss mehr den Tab wechseln.
+     [Quelle: Gespraech 2026-10-01]
+
+     Geprueft am 2026-10-01: Microsoft Forms laesst sich einbetten und fuellt
+     dabei die Felder aus der Adresse. OHNE den Zusatz "embed=true" — mit ihm
+     zeigt Forms nur ein Deckblatt mit einem Link, der wieder einen Tab oeffnet.
 
      Was hier bewusst NICHT behauptet wird: dass ein Teil "abgeschickt" sei.
      Ob im Formular wirklich auf ABSENDEN geklickt wurde, kann Fiona nicht
-     wissen — sie darf in die fremde Seite nicht hineinsehen. Also steht dort
-     "Formular war offen", nicht "erledigt".
+     wissen — sie darf in die fremde Seite nicht hineinsehen, auch nicht im
+     Rahmen. Also bestaetigt der Teilnehmer es selbst mit dem Knopf.
+
+     Rueckfall: Erscheint das Formular im Rahmen nicht (strenge
+     Browser-Einstellungen, Firmennetz), gibt es einen Knopf, der den Teil in
+     einem eigenen Tab oeffnet. Alle Teile landen dann im SELBEN Tab — es
+     bleiben zwei Tabs statt fuenf.
   */
-  function absendenSchritte(portionen, kasten) {
+  const FORMULAR_TAB = "fionaFormular";
+
+  function formularImTab(adresse) {
+    // Bewusst ohne "noopener": Nur so findet der Browser den Tab beim
+    // naechsten Teil wieder, statt jedes Mal einen neuen aufzumachen.
+    window.open(adresse, FORMULAR_TAB);
+  }
+
+  function formularZeigen(portionen, kasten) {
     const anzahl = portionen.length;
-    let offen = 1;      // Teil 1 wurde beim Speichern schon geoeffnet
+    const mehrere = anzahl > 1;
+    let dran = 0;       // Index des Teils, der gerade im Rahmen steht
 
     const h = document.createElement("h2");
+    h.tabIndex = -1;
     kasten.appendChild(h);
 
     const text = document.createElement("p");
     text.className = "kasten-wichtig";
-    text.textContent = ABSCHLUSS.schritteText;
     kasten.appendChild(text);
 
     const liste = document.createElement("ol");
     liste.className = "schrittliste";
-    liste.setAttribute("aria-live", "polite");
+    liste.hidden = !mehrere;
     kasten.appendChild(liste);
 
-    const knopf = document.createElement("button");
-    knopf.type = "button";
-    knopf.className = "knopf";
-    kasten.appendChild(knopf);
+    const entwurfHinweis = document.createElement("p");
+    entwurfHinweis.className = "hinweiszeile";
+    entwurfHinweis.textContent = ABSCHLUSS.entwurfHinweis;
+    kasten.appendChild(entwurfHinweis);
+
+    const buehne = document.createElement("div");
+    kasten.appendChild(buehne);
+
+    const zeile = document.createElement("div");
+    zeile.className = "eingabe-zeile";
+    kasten.appendChild(zeile);
+
+    const weiterK = document.createElement("button");
+    weiterK.type = "button";
+    weiterK.className = "knopf";
+    zeile.appendChild(weiterK);
+
+    const zurueckK = document.createElement("button");
+    zurueckK.type = "button";
+    zurueckK.className = "knopf knopf-still";
+    zeile.appendChild(zurueckK);
+
+    const tabHinweis = document.createElement("p");
+    tabHinweis.className = "hinweiszeile";
+    tabHinweis.textContent = ABSCHLUSS.rahmenLeerHinweis;
+    kasten.appendChild(tabHinweis);
+
+    const tabK = document.createElement("button");
+    tabK.type = "button";
+    tabK.className = "knopf knopf-still";
+    tabK.textContent = ABSCHLUSS.rahmenImTab;
+    tabK.addEventListener("click", () => formularImTab(portionen[dran].adresse));
+    kasten.appendChild(tabK);
 
     const nummernHinweis = document.createElement("p");
     nummernHinweis.className = "hinweiszeile";
     nummernHinweis.textContent = (ABSCHLUSS.schritteNummer || "").replace("{nummer}", gespraechsNummer());
+    nummernHinweis.hidden = !mehrere;
     kasten.appendChild(nummernHinweis);
 
-    const leerHinweis = document.createElement("p");
-    leerHinweis.className = "hinweiszeile";
-    leerHinweis.textContent = ABSCHLUSS.formularLeerHinweisSchritte;
-    kasten.appendChild(leerHinweis);
+    function zeichnen(fokus) {
+      const fertig = dran >= anzahl;
 
-    function zeichnen() {
       liste.innerHTML = "";
       portionen.forEach((p, i) => {
         const li = document.createElement("li");
-        if (i < offen) {
-          li.textContent = "Teil " + (i + 1) + " von " + anzahl + " — Formular war offen. Dort auf ABSENDEN geklickt?";
+        if (i < dran) {
+          li.textContent = "Teil " + (i + 1) + " von " + anzahl + " — von Dir als abgesendet bestätigt";
           li.className = "schritt-offen";
-        } else if (i === offen) {
+        } else if (i === dran) {
           li.textContent = "Teil " + (i + 1) + " von " + anzahl + " — jetzt dran";
           li.className = "schritt-dran";
         } else {
@@ -1692,26 +1745,55 @@
         liste.appendChild(li);
       });
 
-      if (offen >= anzahl) {
-        h.textContent = "Das waren alle Teile";
-        text.textContent = ABSCHLUSS.schritteFertig;
-        knopf.hidden = true;
-        leerHinweis.hidden = true;
-        return;
+      // Der Rahmen wird jedes Mal NEU gebaut, nicht nur umgelenkt — sonst
+      // zeigt Forms nach dem Absenden weiter seine Dankesseite.
+      buehne.innerHTML = "";
+
+      zurueckK.hidden = dran === 0;
+      zurueckK.textContent = fertig
+        ? "Zurück zu Teil " + anzahl
+        : "Zurück zu Teil " + dran;
+      if (!mehrere) zurueckK.textContent = "Formular noch einmal zeigen";
+
+      if (fertig) {
+        h.textContent = mehrere ? "Das waren alle Teile" : "Geschafft";
+        text.textContent = mehrere ? ABSCHLUSS.schritteFertig : ABSCHLUSS.einzelFertig;
+        weiterK.hidden = true;
+        entwurfHinweis.hidden = true;
+        tabHinweis.hidden = true;
+        tabK.hidden = true;
+      } else {
+        h.textContent = mehrere ? "Teil " + (dran + 1) + " von " + anzahl : "Nur noch ein Klick";
+        text.textContent = mehrere ? ABSCHLUSS.schritteText : ABSCHLUSS.formularFertig;
+
+        const rahmen = document.createElement("iframe");
+        rahmen.className = "formular-rahmen";
+        rahmen.title = mehrere
+          ? "Formular, Teil " + (dran + 1) + " von " + anzahl + ", bereits ausgefüllt"
+          : "Formular, bereits ausgefüllt";
+        rahmen.referrerPolicy = "no-referrer";
+        rahmen.src = portionen[dran].adresse;
+        buehne.appendChild(rahmen);
+
+        weiterK.hidden = false;
+        entwurfHinweis.hidden = false;
+        weiterK.textContent = dran + 1 < anzahl
+          ? "Abgesendet — weiter zu Teil " + (dran + 2) + " von " + anzahl
+          : (mehrere ? "Abgesendet — das war der letzte Teil" : "Abgesendet — fertig");
+        tabHinweis.hidden = false;
+        tabK.hidden = false;
       }
 
-      h.textContent = "Noch " + (anzahl - offen) + " von " + anzahl + " Teilen";
-      knopf.hidden = false;
-      knopf.textContent = "Teil " + (offen + 1) + " von " + anzahl + " abschicken";
+      if (fokus) {
+        kasten.scrollIntoView({ behavior: "smooth", block: "start" });
+        h.focus({ preventScroll: true });
+      }
     }
 
-    knopf.addEventListener("click", () => {
-      window.open(portionen[offen].adresse, "_blank", "noopener");
-      offen++;
-      zeichnen();
-    });
+    weiterK.addEventListener("click", () => { dran++; zeichnen(true); });
+    zurueckK.addEventListener("click", () => { if (dran > 0) { dran--; zeichnen(true); } });
 
-    zeichnen();
+    zeichnen(false);
   }
 
   async function speichern() {
@@ -1738,13 +1820,9 @@
     zustand.fertig = true;
     eingabeLeeren();
 
-    /*
-       Die erste Absendung MUSS hier aufgehen, direkt im Klick — vor jedem
-       await. Danach gilt der Klick als abgehandelt und der Browser blockiert
-       das Fenster als ungebeten.
-    */
-    if (!testbetrieb) window.open(portionen[0].adresse, "_blank", "noopener");
-
+    // Die Bitte ums Durchlesen ist erledigt. Bliebe sie stehen, rutschte das
+    // Formular unter den Bildschirmrand.
+    verlauf.innerHTML = "";
     beitragFiona(ABSCHLUSS.nachDemSpeichern);
 
     const kasten = document.createElement("div");
@@ -1757,35 +1835,8 @@
       p.appendChild(stark);
       kasten.appendChild(p);
 
-    } else if (portionen.length > 1) {
-      absendenSchritte(portionen, kasten);
-
     } else {
-      const vorausgefuellt = portionen[0].adresse;
-      const h = document.createElement("h2");
-      h.textContent = "Nur noch ein Klick";
-      kasten.appendChild(h);
-
-      const p = document.createElement("p");
-      p.className = "kasten-wichtig";
-      p.textContent = ABSCHLUSS.formularFertig;
-      kasten.appendChild(p);
-
-      // Absicherung gegen den Entwurf, den Forms im Browser zwischenspeichert.
-      const notfall = document.createElement("p");
-      notfall.className = "hinweiszeile";
-      notfall.textContent = ABSCHLUSS.formularLeerHinweis;
-      kasten.appendChild(notfall);
-
-      const nochmalK = document.createElement("button");
-      nochmalK.type = "button";
-      nochmalK.className = "knopf";
-      nochmalK.textContent = ABSCHLUSS.formularNochmal;
-      nochmalK.addEventListener("click", () => {
-        window.open(vorausgefuellt, "_blank", "noopener");
-      });
-      kasten.appendChild(nochmalK);
-
+      formularZeigen(portionen, kasten);
     }
 
     const zeile = document.createElement("div");

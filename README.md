@@ -50,8 +50,10 @@ Nach einer Änderung: Datei speichern, im Browser **F5** drücken.
 
 ## Scharf schalten
 
-1. In Microsoft Forms ein Formular anlegen mit **einer einzigen Frage** vom Typ
-   *Langer Text*, zum Beispiel: „Bitte füge hier Deine Zusammenfassung ein."
+1. In Microsoft Forms ein Formular anlegen mit **zwei Fragen** vom Typ
+   *Langer Text*: „Text dieser Absendung" (Pflichtfeld) und „Fortsetzung
+   derselben Absendung" (freiwillig). Zwei, weil ein Feld nur 4.000 Zeichen
+   fasst, eine Absendung aber rund 5.000 trägt.
 2. Unter *Einstellungen*: **„Jede Person kann antworten"** wählen.
    Das ist zwingend — die Teilnehmer haben in der Regel kein Konto in der
    Microsoft-365-Umgebung, in der das Formular liegt.
@@ -64,6 +66,41 @@ Nach einer Änderung: Datei speichern, im Browser **F5** drücken.
 **Erledigt am 2026-08-29:** Das Formular „Kreisbrandmeister - Aufgaben und
 Erwartungen" ist angelegt, steht auf „Jeder kann antworten" und ist in
 `leitfaden.js` eingetragen.
+
+## Absenden: das Formular steht in der Seite
+
+Seit 2026-10-01 öffnet sich das Formular nicht mehr in einem eigenen Tab,
+sondern erscheint fertig ausgefüllt **in Fiona selbst**. Bei langen Antworten
+kommt Teil für Teil: im Formular auf ABSENDEN klicken, darunter auf „Abgesendet
+— weiter zu Teil 2". Kein Tab-Wechsel.
+
+Rückfall: Bleibt der Rahmen leer, öffnet der Knopf „Diesen Teil in eigenem Tab
+öffnen" das Formular in einem Tab — für alle Teile in demselben.
+
+Fragt Forms „Neuen Entwurf erstellen?", ist **„Neuer Entwurf"** richtig.
+
+## Auswertung: Teile wieder zusammensetzen
+
+Jede Absendung ist in Forms eine eigene Zeile. Sie beginnt mit
+„Gespräch 471123 - Teil 2 von 4". Die Nummer ist gewürfelt (sechs Stellen) und
+sagt nichts über die Person.
+
+1. In Forms die Antworten als Excel-Datei herunterladen.
+2. Die Datei in den Ordner `auswertung` legen.
+3. Doppelklick auf `auswertung\Zusammenfuehren.cmd`.
+
+Es entstehen drei Dateien:
+
+| Datei | Inhalt |
+|---|---|
+| `Zusammenfuehrung.txt` | alle Gespräche untereinander, zum Lesen |
+| `Zusammenfuehrung.csv` | eine Zeile je Gespräch |
+| `Zusammenfuehrung-je-Frage.csv` | eine Zeile je Gespräch **und Frage**: Thema, Frage, Antwort. Die Grundlage für die Auswertung |
+
+Fehlende oder doppelte Teile werden oben unter „BITTE PRUEFEN" gemeldet. Die
+Excel-Datei wird nur gelesen.
+
+Der Ordner `auswertung` wird **nicht** veröffentlicht (`.gitignore`).
 
 ## Die Seite ist veröffentlicht
 
@@ -256,7 +293,7 @@ Gespräch fällt das nicht auf; für die Auswertung ist es ohne Bedeutung.
 
 ---
 
-Stand: 2026-08-29
+Stand: 2026-10-01
 
 ---
 

@@ -5,3 +5,7 @@ Thumbs.db
 
 # Die Hintergrundbilder gehoeren nicht zur Webseite
 forms-hintergruende/
+
+# Die Auswertung gehoert nicht zur Webseite - und Antworten duerfen nie ins Netz
+auswertung/
+*.xlsx

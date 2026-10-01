@@ -731,6 +731,15 @@ h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
 .schritt-dran { font-weight: 700; }
 .schritt-offen { color: var(--schrift-leise); }
 
+/* Das Formular steht in der Seite selbst — kein Tab-Wechsel mehr. Hoch
+   genug, dass man den Text erkennt; nie hoeher als der Bildschirm, damit der
+   Knopf darunter erreichbar bleibt. */
+.formular-rahmen {
+  display: block; width: 100%; height: min(75vh, 46rem); min-height: 22rem;
+  border: 1px solid var(--linie); border-radius: var(--radius);
+  background: #fff; margin: .8rem 0;
+}
+
 
 
 /* Kasten, der auf ein Problem hinweist statt auf den naechsten Schritt. */

@@ -35,15 +35,26 @@ const KONFIG = {
 
      Leer lassen, wenn der Text stattdessen von Hand eingefuegt werden soll.
 
-     Es sind DREI Felder, weil Forms je Textfeld hoechstens 4.000 Zeichen
-     annimmt (siehe feldGrenze). Fiona verteilt die Zusammenfassung der Reihe
-     nach darauf. Teil 2 und 3 sind im Formular bewusst KEINE Pflichtfelder —
-     sonst koennte niemand mit kurzer Antwort mehr absenden.
+     Es sind ZWEI Felder, weil Forms je Textfeld hoechstens 4.000 Zeichen
+     annimmt (siehe feldGrenze), in eine Absendung aber rund 5.000 passen
+     (siehe urlGrenze). Fiona schreibt den Anfang einer Absendung ins erste
+     Feld und den Rest DERSELBEN Absendung ins zweite. Das zweite ist im
+     Formular bewusst KEIN Pflichtfeld — sonst koennte niemand mit kurzer
+     Antwort mehr absenden.
+
+     Achtung, nicht verwechseln: Die Felder sind nicht „Teil 1“ und „Teil 2“
+     des Gespraechs. Welcher Teil des Gespraechs eine Absendung ist, steht
+     in ihrer ersten Zeile („Gespräch 471123 - Teil 2 von 4“). Im Formular
+     heissen die Felder deshalb „Text dieser Absendung“ und „Fortsetzung
+     derselben Absendung“.
+
+     Bis 2026-10-01 gab es ein drittes Feld. Es konnte nie erreicht werden,
+     weil vorher die Adresslaenge Schluss macht — in der Auswertung stand es
+     immer leer da und hat nur verwirrt. [Quelle: Gespraech 2026-10-01]
   */
   formularFelder: [
-    "r0886e26f09a845acbb4e477665e6df9d", // Teil 1 (Pflichtfeld)
-    "r7ece61cd06d14350881fe2a4916f2a2d", // Teil 2 (freiwillig)
-    "rc00261eebbfd4df58b7706f213979086", // Teil 3 (freiwillig)
+    "r0886e26f09a845acbb4e477665e6df9d", // Text dieser Absendung (Pflichtfeld)
+    "r7ece61cd06d14350881fe2a4916f2a2d", // Fortsetzung derselben Absendung (freiwillig)
   ],
 
   /*
@@ -749,27 +760,35 @@ const ABSCHLUSS = {
     "Die Ergebnisse aus allen Gesprächen werden zusammengefasst und in einer Sitzung vorgestellt.",
   ],
   // Wenn die Zusammenfassung direkt ins Formular geschrieben werden konnte:
-  formularFertig: "Das Formular ist offen, und Deine Zusammenfassung steht schon drin. Bitte dort nur noch nach unten scrollen und auf ABSENDEN klicken — erst dann ist Deine Antwort gespeichert.",
   /*
-     Absicherung: Microsoft Forms merkt sich im Browser einen Entwurf und
-     zeigt den notfalls STATT des vorausgefuellten Textes. Das passiert, wenn
-     das Formular in derselben Sitzung schon einmal offen war. Von hier aus
-     ist dagegen nichts zu machen — Fiona darf in eine fremde Seite nicht
-     hineinschreiben. Also sagen wir, was zu tun ist.
-     [Quelle: nachgewiesen am 2026-09-08]
+     Das Formular steht seit 2026-10-01 direkt in der Seite, in einem Rahmen
+     unter diesem Text. Niemand muss mehr den Tab wechseln.
   */
-  formularLeerHinweis: "Steht im Formular nichts oder etwas Altes? Dann schließ den Formular-Tab ganz, komm hierher zurück und klick unten auf „Formular noch einmal öffnen“. Dein Text ist hier weiter sicher.",
-  formularNochmal: "Formular noch einmal öffnen",
+  formularFertig: "Deine Zusammenfassung steht schon im Formular hier drunter. Bitte dort nur noch nach unten scrollen und auf ABSENDEN klicken — erst dann ist Deine Antwort gespeichert.",
+  einzelFertig: "Wenn Du im Formular auf ABSENDEN geklickt hast, ist Deine Antwort angekommen. Danke, dass Du Dir die Zeit genommen hast.",
   /*
      Wenn die Antwort auf mehrere Absendungen verteilt wird. Es wird nichts
-     mehr kopiert — jedes Formular ist fertig ausgefuellt, der Teilnehmer
-     klickt nur ABSENDEN.
+     kopiert — jedes Formular ist fertig ausgefuellt, der Teilnehmer klickt
+     nur ABSENDEN und dann hier auf den Knopf zum naechsten Teil.
   */
-  schritteText: "Deine Antwort ist ausführlich geworden — schön. Sie wird deshalb in mehreren Schritten abgeschickt. Jedes Formular ist bereits fertig ausgefüllt: Du klickst dort nur unten auf ABSENDEN, kommst hierher zurück und schickst den nächsten Teil ab. Es ist nichts abzutippen und nichts zu kopieren. Bitte lass dieses Fenster dabei offen.",
+  schritteText: "Deine Antwort ist ausführlich geworden — schön. Sie wird deshalb in mehreren Teilen abgeschickt. Das Formular hier drunter ist bereits fertig ausgefüllt: Scroll darin nach unten, klick auf ABSENDEN und dann unter dem Formular auf den Knopf zum nächsten Teil. Es ist nichts abzutippen und nichts zu kopieren.",
   schritteFertig: "Das war der letzte Teil. Wenn Du in jedem Formular auf ABSENDEN geklickt hast, ist Deine Antwort vollständig angekommen. Danke, dass Du Dir die Zeit genommen hast.",
   // Transparenz: Warum in jedem Teil eine Nummer steht.
   schritteNummer: "In jedem Teil steht oben „Gespräch {nummer}“. Diese Nummer ist gewürfelt und sagt nichts über Dich aus — sie sorgt nur dafür, dass die Teile bei der Auswertung wieder zusammenfinden.",
-  formularLeerHinweisSchritte: "Ist ein Formular leer oder steht Altes darin? Dann schließ den Formular-Tab ganz und klick hier noch einmal auf den Knopf.",
+  /*
+     Rueckfall, falls der Rahmen leer bleibt oder Forms einen alten Entwurf
+     zeigt (Forms merkt sich im Browser einen Entwurf, nachgewiesen am
+     2026-09-08). Der Knopf oeffnet denselben Teil in einem eigenen Tab —
+     fuer alle Teile derselbe Tab.
+  */
+  /*
+     Forms fragt „Neuen Entwurf erstellen?“, wenn im Browser noch ein nicht
+     abgesendeter Entwurf liegt. Richtig ist dann „Neuer Entwurf“ — nur so
+     steht der Text dieses Teils im Formular. [Quelle: beobachtet 2026-10-01]
+  */
+  entwurfHinweis: "Fragt das Formular „Neuen Entwurf erstellen?“, dann klick dort auf „Neuer Entwurf“.",
+  rahmenLeerHinweis: "Erscheint das Formular hier nicht, ist es leer oder steht etwas Altes darin? Dann öffne diesen Teil in einem eigenen Tab, klick dort auf ABSENDEN und komm hierher zurück.",
+  rahmenImTab: "Diesen Teil in eigenem Tab öffnen",
   // Sicherheitsnetz: Der Text passt auch aufgeteilt nicht mehr ins Formular.
   zuLangUeberschrift: "Der Text ist sehr lang geworden",
   zuLangText: "Dein Text hat {laenge} Zeichen. Er müsste auf {portionen} Formulare verteilt werden — mehr als die {hoechstens}, die ich Dir zumuten möchte. Bitte kürze ihn oben noch etwas. Ich schneide nichts von allein ab: Was Du geschrieben hast, soll vollständig ankommen oder gar nicht.",
