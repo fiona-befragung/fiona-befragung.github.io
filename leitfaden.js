@@ -723,6 +723,8 @@ const BLOECKE = [
     fragen: [
       { id: "stv_zuschnitt", frage: "Sollen die Stellvertreter feste Zuständigkeiten haben — etwa Ausbildung, Technik oder Digitalfunk? Oder sollen sie den Kreisbrandmeister einfach allgemein vertreten?", label: "Zuschnitt", typ: "text" },
       { id: "stv_aufgaben", frage: "Welche von den Aufgaben, die Du vorhin genannt hast, gehören ausdrücklich zu einem Stellvertreter?", label: "Aufgaben der Stellvertretung", typ: "text" },
+      { id: "stv_person", frage: "Was muss ein Stellvertreter mitbringen — fachlich, als Führungskraft und menschlich? Gilt da dasselbe wie beim Kreisbrandmeister, oder ist Dir bei ihm etwas anderes wichtig?", label: "Erwartungen an die Person", typ: "text" },
+      { id: "stv_zeit", frage: "Und wie viel Zeit muss ein Stellvertreter im Monat aufbringen können?", label: "Zeitaufwand", typ: "text" },
     ],
   },
 
