@@ -721,7 +721,6 @@ const BLOECKE = [
     zusammenfassungTitel: "STELLVERTRETUNG",
     einleitung: "Fast geschafft. Jetzt zu den Stellvertretern — die werden meistens mitgedacht und selten besprochen.",
     fragen: [
-      { id: "stv_anzahl", frage: "Das Gesetz verlangt mindestens einen. Wie viele braucht es aus Deiner Sicht im Landkreis Vechta?", label: "Anzahl", typ: "text" },
       { id: "stv_zuschnitt", frage: "Sollen die Stellvertreter feste Zuständigkeiten haben — etwa Ausbildung, Technik oder Digitalfunk? Oder sollen sie den Kreisbrandmeister einfach allgemein vertreten?", label: "Zuschnitt", typ: "text" },
       { id: "stv_aufgaben", frage: "Welche von den Aufgaben, die Du vorhin genannt hast, gehören ausdrücklich zu einem Stellvertreter?", label: "Aufgaben der Stellvertretung", typ: "text" },
     ],
